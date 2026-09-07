@@ -2318,7 +2318,7 @@ function showReceipt(sale){
           <span>${esc(item.name)}</span>
           <strong>${money(item.subtotal)}</strong>
           <small>
-            \({item.quantity} x \){money(item.price)}
+            ${item.quantity} x ${money(item.price)}
             - ${esc(item.code)}
           </small>
         </div>
@@ -2804,72 +2804,81 @@ async function readPhoto(event){
 }
 
 async function startCamera(){
-  var result =
-    document.getElementById("scanResult");
+  var result = document.getElementById("scanResult");
+  var message = document.getElementById("cameraMessage");
 
-  var message =
-    document.getElementById("cameraMessage");
+  stopCamera();
 
-  var getCamera =
-    navigator.mediaDevices &&
-    navigator.mediaDevices.getUserMedia
-      ? navigator.mediaDevices.getUserMedia.bind(
-          navigator.mediaDevices
-        )
-      : null;
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    message.textContent = "Câmera não suportada";
+    result.className = "scan-result error";
+    result.textContent = "Seu navegador não oferece acesso à câmera ou a conexão não é HTTPS.";
+    return;
+  }
 
-  if(!getCamera){
-    message.textContent = "Use a opção Tirar foto.";
-    result.textContent =
-      "A câmera ao vivo precisa de HTTPS ou localhost.";
-    takePhoto();
+  message.textContent = "Solicitando permissão...";
+  result.className = "scan-result";
+  result.textContent = "Aguardando autorização no dispositivo...";
+
+  var constraints = [
+    { video: { facingMode: { exact: "environment" } }, audio: false },
+    { video: { facingMode: "environment" }, audio: false },
+    { video: true, audio: false }
+  ];
+
+  var stream = null;
+  var lastError = null;
+
+  for(var i = 0; i < constraints.length; i++){
+    try {
+      stream = await navigator.mediaDevices.getUserMedia(constraints[i]);
+      if(stream) break;
+    } catch(err) {
+      lastError = err;
+    }
+  }
+
+  if(!stream){
+    message.textContent = "Permissão negada ou indisponível";
+    result.className = "scan-result error";
+    
+    if(lastError && (lastError.name === "NotAllowedError" || lastError.name === "PermissionDeniedError")){
+      result.textContent = "Permissão da câmera foi negada. Permita o acesso nas configurações do navegador.";
+    } else {
+      result.textContent = "Não foi possível conectar com a câmera do celular.";
+    }
+    toast("Permissão de câmera não concedida.");
     return;
   }
 
   try{
-    scannerStream = await getCamera({
-      video:{
-        facingMode:{
-          ideal:"environment"
-        }
-      },
-      audio:false
-    });
-
+    scannerStream = stream;
     var video = document.getElementById("video");
 
-    video.srcObject = scannerStream;
+    video.srcObject = stream;
+    video.setAttribute("playsinline", true);
+    
     await video.play();
 
-    document.getElementById("cameraBox")
-      .classList.add("active");
-
-    document.getElementById("cameraBox")
-      .classList.remove("done");
-
-    document.getElementById("cameraButton")
-      .textContent = "⏹ Desativar câmera";
+    document.getElementById("cameraBox").classList.add("active");
+    document.getElementById("cameraBox").classList.remove("done");
+    document.getElementById("cameraButton").textContent = "⏹ Desativar câmera";
 
     scannerActive = true;
     cameraReading = false;
 
-    message.textContent =
-      "Aponte para o código";
+    message.textContent = "Aponte para o código";
 
     if("BarcodeDetector" in window){
       readCameraFrame();
     }else{
-      result.textContent =
-        "Câmera ativa. Use um leitor ou digite o código.";
+      result.textContent = "Câmera ativa. Use a leitura ou digite o código.";
     }
   }catch(error){
-    message.textContent = "Permissão recusada";
-
+    stopCamera();
+    message.textContent = "Erro ao reproduzir câmera";
     result.className = "scan-result error";
-    result.textContent =
-      "Permita a câmera nas configurações do navegador.";
-
-    toast("Permissão da câmera recusada.");
+    result.textContent = "Ocorreu um erro ao reproduzir a imagem da câmera.";
   }
 }
 
