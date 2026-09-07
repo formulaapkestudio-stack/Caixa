@@ -1,392 +1,2993 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Estoque Fácil</title>
-  <style>
-    :root {
-      --bg: #f5f7fb;
-      --surface: #ffffff;
-      --text: #172033;
-      --muted: #697386;
-      --border: #e5e9f0;
-      --primary: #4f46e5;
-      --primary-dark: #3730a3;
-      --green: #0f9f6e;
-      --red: #dc3545;
-      --orange: #c77700;
-      --shadow: 0 10px 30px rgba(20, 30, 55, .07);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-    * { box-sizing: border-box; }
-    body { margin: 0; background: var(--bg); color: var(--text); }
-    button, input, select { font: inherit; }
-    button { cursor: pointer; border: 0; }
-    .app { display: flex; min-height: 100vh; }
-    .sidebar { width: 245px; background: #171a2b; color: #fff; padding: 25px 17px; display: flex; flex-direction: column; }
-    .brand { display: flex; gap: 11px; align-items: center; padding: 0 10px 30px; font-size: 20px; font-weight: 800; }
-    .brand-icon { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 11px; background: linear-gradient(135deg, #818cf8, #4f46e5); }
-    .nav-title { color: #858ba4; text-transform: uppercase; font-size: 10px; letter-spacing: .12em; padding: 0 12px 10px; }
-    .nav button { width: 100%; padding: 12px; margin: 3px 0; border-radius: 9px; color: #b4bad0; background: transparent; text-align: left; }
-    .nav button:hover, .nav button.active { background: #292d49; color: #fff; }
-    .sidebar-footer { margin-top: auto; color: #858ba4; font-size: 12px; line-height: 1.5; padding: 12px; }
-    .main { flex: 1; padding: 28px clamp(18px, 4vw, 48px); overflow: hidden; }
-    .topbar { display: flex; justify-content: space-between; gap: 15px; align-items: center; margin-bottom: 27px; }
-    h1 { margin: 0; font-size: clamp(24px, 3vw, 32px); letter-spacing: -.03em; }
-    .subtitle { color: var(--muted); margin: 6px 0 0; font-size: 14px; }
-    .actions { display: flex; gap: 9px; flex-wrap: wrap; }
-    .btn { border-radius: 8px; padding: 10px 14px; font-weight: 700; transition: .15s; }
-    .btn-primary { background: var(--primary); color: #fff; box-shadow: 0 4px 10px rgba(79,70,229,.2); }
-    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
-    .btn-light { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
-    .btn-light:hover { background: #f8f9fc; }
-    .btn-danger { color: var(--red); background: #fff1f2; }
-    .cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 15px; margin-bottom: 24px; }
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; box-shadow: var(--shadow); }
-    .stat { display: flex; align-items: flex-start; justify-content: space-between; }
-    .stat-label { color: var(--muted); font-size: 13px; }
-    .stat-value { display: block; font-size: 28px; font-weight: 800; margin-top: 7px; }
-    .stat-icon { width: 39px; height: 39px; display: grid; place-items: center; border-radius: 11px; background: #eef2ff; color: var(--primary); font-size: 18px; }
-    .stat:nth-child(2) .stat-icon { background: #ecfdf5; color: var(--green); }
-    .stat:nth-child(3) .stat-icon { background: #fff7ed; color: var(--orange); }
-    .stat:nth-child(4) .stat-icon { background: #fff1f2; color: var(--red); }
-    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; }
-    .panel-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 19px 20px; border-bottom: 1px solid var(--border); }
-    .panel-title { margin: 0; font-size: 17px; }
-    .tools { padding: 15px 20px; display: flex; gap: 10px; flex-wrap: wrap; border-bottom: 1px solid var(--border); }
-    .search { position: relative; flex: 1 1 240px; }
-    .search span { position: absolute; left: 12px; top: 10px; color: var(--muted); }
-    .search input { padding-left: 34px; width: 100%; }
-    input, select { border: 1px solid var(--border); border-radius: 8px; padding: 10px 11px; color: var(--text); background: #fff; outline: none; }
-    input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,.1); }
-    .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; min-width: 730px; }
-    th, td { text-align: left; padding: 14px 20px; border-bottom: 1px solid #edf0f5; font-size: 14px; white-space: nowrap; }
-    th { font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); background: #fafbfe; }
-    tr:last-child td { border-bottom: 0; }
-    .product-name { font-weight: 700; }
-    .sku { color: var(--muted); font-size: 12px; margin-top: 3px; }
-    .badge { display: inline-flex; padding: 5px 9px; border-radius: 30px; font-size: 12px; font-weight: 700; }
-    .badge-ok { color: #087f5b; background: #e7f8f1; }
-    .badge-low { color: #a45b00; background: #fff4db; }
-    .badge-out { color: #b42333; background: #ffe7e9; }
-    .row-actions { display: flex; gap: 6px; }
-    .icon-btn { background: #f5f6fa; padding: 7px 9px; border-radius: 7px; color: var(--muted); }
-    .icon-btn:hover { background: #e9ebf5; color: var(--primary); }
-    .empty { text-align: center; padding: 45px 20px; color: var(--muted); }
-    .empty strong { display: block; color: var(--text); margin-bottom: 5px; }
-    .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(10,15,30,.48); z-index: 10; padding: 20px; align-items: center; justify-content: center; }
-    .modal-backdrop.open { display: flex; }
-    .modal { width: min(500px, 100%); background: #fff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,.2); }
-    .modal-header { padding: 20px 22px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
-    .modal-header h2 { margin: 0; font-size: 19px; }
-    .close { background: transparent; font-size: 25px; color: var(--muted); line-height: 1; }
-    .form { padding: 20px 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-    .field { display: flex; flex-direction: column; gap: 6px; }
-    .field.full { grid-column: 1/-1; }
-    label { font-size: 13px; font-weight: 700; }
-    .form-footer { grid-column: 1/-1; display: flex; justify-content: flex-end; gap: 9px; padding-top: 5px; }
-    .toast { position: fixed; right: 22px; bottom: 22px; background: #192033; color: white; padding: 13px 17px; border-radius: 9px; box-shadow: var(--shadow); opacity: 0; transform: translateY(10px); pointer-events: none; transition: .2s; z-index: 20; font-size: 14px; }
-    .toast.show { opacity: 1; transform: translateY(0); }
-    .scanner-body { padding: 20px 22px 22px; }
-    .camera-box { position: relative; height: 230px; margin: 16px 0; overflow: hidden; border-radius: 12px; background: #121827; display: grid; place-items: center; color: #aeb5c9; font-size: 13px; }
-    #scannerVideo { display: none; width: 100%; height: 100%; object-fit: cover; }
-    .camera-guide { display: none; position: absolute; width: 72%; height: 65px; border: 2px solid #8bffcb; border-radius: 9px; box-shadow: 0 0 0 999px rgba(0,0,0,.18); }
-    .camera-box.active #scannerVideo, .camera-box.active .camera-guide { display: block; }
-    .camera-box.active #cameraMessage { display: none; }
-    .scanner-actions { display: flex; gap: 8px; }
-    .scanner-actions input { flex: 1; min-width: 0; }
-    .scan-result { margin-top: 13px; padding: 11px 12px; border-radius: 8px; background: #f4f6fb; color: var(--muted); font-size: 13px; }
-    .scan-result.success { color: #087f5b; background: #e7f8f1; font-weight: 700; }
-    .scan-result.error { color: #b42333; background: #ffe7e9; font-weight: 700; }
-    .cashier-grid { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(280px, .8fr); gap: 16px; align-items: start; }
-    .cashier-scan { display: flex; align-items: center; gap: 12px; padding: 17px 20px; border-bottom: 1px solid var(--border); background: #fbfcff; }
-    .cashier-scan input { flex: 1; min-width: 0; height: 45px; font-size: 16px; border-color: #b8c2dc; }
-    .cashier-scan input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(79,70,229,.13); }
-    .scan-label { min-width: 142px; display: flex; flex-direction: column; gap: 3px; font-size: 13px; }
-    .scan-label span { color: var(--green); font-size: 11px; font-weight: 600; }
-    .cashier-cart .table-wrap { min-height: 300px; }
-    .cashier-summary .panel-header { background: #fafbfe; }
-    .cashier-summary .finalize-btn:first-of-type { background: var(--green); box-shadow: 0 4px 10px rgba(15,159,110,.2); }
-    .cashier-summary .finalize-btn:first-of-type:hover { background: #087f5b; }
-    .pos-mode { background: #eef9f3; }
-    .pos-mode .main { background: linear-gradient(135deg, #eef9f3 0%, #f8fbfa 55%, #eef7f3 100%); }
-    .pos-mode .brand-icon { background: linear-gradient(135deg, #34d399, #059669); }
-    .pos-mode .cashier-grid .panel { border-color: #bfe5d2; }
-    .pos-mode .cashier-cart { border-top: 4px solid #0f9f6e; }
-    .pos-mode .cashier-summary { border-top: 4px solid #f59e0b; }
-    .pos-mode .cashier-cart .panel-header { background: linear-gradient(90deg, #e4f8ed, #f7fcf9); }
-    .pos-mode .cashier-summary .panel-header { background: #fff8e8; }
-    .pos-mode .cashier-scan { background: #effbf5; border-bottom-color: #cfeadd; }
-    .pos-mode .cashier-scan input { border-color: #7bc9a5; }
-    .pos-mode .cashier-scan input:focus { border-color: #0f9f6e; box-shadow: 0 0 0 4px rgba(15,159,110,.14); }
-    .pos-mode .panel-title { color: #087f5b; }
-    .pos-mode .cashier-summary .panel-title { color: #a45b00; }
-    .pos-mode .nav button.active { background: #0b7654; }
-    .pos-mode .nav button.active:hover { background: #096246; }
-    .nav button.cashier-active { border-left: 3px solid #34d399; }
-    .sales-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
-    .sales-summary > div { background: #fff; padding: 16px 20px; }
-    .sales-summary span { display: block; color: var(--muted); font-size: 12px; margin-bottom: 6px; }
-    .sales-summary strong { font-size: 21px; }
-    .sales-tools { border-bottom: 1px solid var(--border); }
-    .sale-number { font-weight: 800; color: var(--primary); }
-    .sale-products { color: var(--muted); font-size: 12px; max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
-    .sale-total { font-weight: 800; color: var(--text); }
-    .sales-view-active { border-left: 3px solid #818cf8; }
-    @media (max-width: 700px) { .sales-summary { grid-template-columns: repeat(2, 1fr); } .sales-summary > div { padding: 13px; } }
-    .cashier-summary { position: sticky; top: 20px; }
-    .summary-body { padding: 20px; }
-    .summary-line, .summary-total { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; }
-    .summary-line { color: var(--muted); font-size: 14px; }
-    .summary-total { border-top: 1px solid var(--border); margin-top: 14px; padding-top: 17px; font-size: 18px; }
-    .summary-total strong { font-size: 25px; color: var(--primary); }
-    .finalize-btn { width: 100%; margin-top: 12px; }
-    .cart-product { font-weight: 700; }
-    .cart-code { color: var(--muted); font-size: 11px; margin-top: 3px; }
-    .qty-control { display: inline-flex; align-items: center; gap: 7px; }
-    .qty-control button { width: 25px; height: 25px; border-radius: 6px; color: var(--primary); background: #eef2ff; font-weight: 800; }
-    .qty-control button:hover { background: #dfe4ff; }
-    .stock-note { display: block; color: var(--muted); font-size: 11px; margin-top: 3px; }
-    .receipt-modal { width: min(440px, 100%); max-height: 92vh; overflow-y: auto; background: #fff; border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,.2); }
-    .receipt-actions { position: sticky; top: 0; background: #fff; z-index: 1; }
-    .receipt-paper { margin: 20px; padding: 22px 18px; border: 1px dashed #cbd2df; color: #202738; font-family: "Courier New", monospace; font-size: 12px; }
-    .receipt-head { text-align: center; border-bottom: 1px dashed #9ea8ba; padding-bottom: 14px; margin-bottom: 14px; }
-    .receipt-head strong { display: block; font-size: 17px; letter-spacing: .06em; margin-bottom: 6px; }
-    .receipt-head span { display: block; color: #596579; line-height: 1.5; }
-    .receipt-meta { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 14px; color: #596579; }
-    .receipt-item { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; padding: 8px 0; border-bottom: 1px dotted #cbd2df; }
-    .receipt-item small { grid-column: 1; color: #68758b; }
-    .receipt-item strong { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
-    .receipt-totals { margin-top: 13px; padding-top: 9px; border-top: 1px dashed #9ea8ba; }
-    .receipt-line { display: flex; justify-content: space-between; margin: 6px 0; }
-    .receipt-total { font-size: 17px; font-weight: 800; margin-top: 10px; }
-    .receipt-thanks { text-align: center; margin-top: 17px; padding-top: 13px; border-top: 1px dashed #9ea8ba; color: #596579; }
-    .receipt-footer { display: flex; gap: 9px; padding: 0 20px 20px; }
-    .receipt-footer .btn { flex: 1; }
-    @media (max-width: 900px) { .cashier-grid { grid-template-columns: 1fr; } .cashier-summary { position: static; } }
-    @media (max-width: 900px) { .sidebar { width: 70px; padding: 18px 9px; } .brand { padding: 0 8px 28px; } .brand span, .nav-title, .nav button span, .sidebar-footer { display: none; } .nav button { text-align: center; font-size: 20px; padding: 12px 6px; } .cards { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 570px) { .app { display: block; } .sidebar { width: 100%; height: 64px; padding: 8px 12px; flex-direction: row; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 5; } .brand { padding: 0; flex: 1; } .brand-icon { width: 34px; height: 34px; } .nav { display: flex; gap: 3px; } .nav button { margin: 0; padding: 9px; font-size: 19px; } .main { padding: 20px 13px 30px; } .topbar { align-items: flex-start; flex-direction: column; gap: 16px; } .actions { width: 100%; } .actions .btn { flex: 1; padding: 10px 8px; } .cards { gap: 9px; } .card { padding: 14px; border-radius: 11px; } .stat-label { font-size: 11px; line-height: 1.25; display: block; min-height: 28px; } .stat-value { font-size: 21px; margin-top: 5px; } .stat-icon { width: 31px; height: 31px; font-size: 14px; } .panel-header { align-items: flex-start; flex-direction: column; } .tools { padding: 12px; } .tools select { flex: 1; min-width: 0; } .scanner-actions { flex-direction: column; } .scanner-actions .btn { width: 100%; } .cashier-scan { flex-direction: column; align-items: stretch; padding: 12px; } .cashier-scan .btn { width: 100%; } .table-wrap { margin: 0; } th, td { padding: 12px 13px; } .form { grid-template-columns: 1fr; } .field.full { grid-column: auto; } .form-footer { grid-column: auto; } .modal-backdrop { padding: 12px; align-items: flex-end; } .modal { max-height: 94vh; overflow-y: auto; border-radius: 16px 16px 10px 10px; } }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Estoque Fácil</title>
+
+<style>
+*{box-sizing:border-box}
+
+:root{
+  --bg:#f3f6fa;
+  --card:#fff;
+  --text:#172033;
+  --muted:#6b7280;
+  --line:#e2e7ef;
+  --blue:#4f46e5;
+  --green:#0f9f6e;
+  --orange:#f59e0b;
+  --red:#dc3545;
+}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Arial,sans-serif;
+}
+
+button,input,select{
+  font:inherit;
+}
+
+button{
+  cursor:pointer;
+  border:0;
+}
+
+.app{
+  display:flex;
+  min-height:100vh;
+}
+
+.sidebar{
+  width:240px;
+  background:#171a2b;
+  color:white;
+  padding:22px 15px;
+  display:flex;
+  flex-direction:column;
+}
+
+.logo{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:20px;
+  font-weight:bold;
+  margin:0 8px 28px;
+}
+
+.logo-icon{
+  width:38px;
+  height:38px;
+  display:grid;
+  place-items:center;
+  border-radius:10px;
+  background:#4f46e5;
+}
+
+.menu-title{
+  color:#9298ae;
+  font-size:10px;
+  text-transform:uppercase;
+  margin:0 12px 10px;
+}
+
+.menu button{
+  width:100%;
+  margin:3px 0;
+  padding:12px;
+  border-radius:8px;
+  background:transparent;
+  color:#c5cada;
+  text-align:left;
+}
+
+.menu button:hover,
+.menu button.active{
+  background:#2d3253;
+  color:white;
+}
+
+.side-info{
+  margin-top:auto;
+  color:#9298ae;
+  font-size:12px;
+  padding:12px;
+}
+
+main{
+  flex:1;
+  padding:28px clamp(15px,4vw,48px);
+  overflow:hidden;
+}
+
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+  margin-bottom:25px;
+}
+
+h1{
+  margin:0;
+  font-size:clamp(24px,3vw,34px);
+}
+
+.subtitle{
+  color:var(--muted);
+  font-size:14px;
+  margin:6px 0 0;
+}
+
+.actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.btn{
+  padding:10px 14px;
+  border-radius:8px;
+  font-weight:bold;
+}
+
+.btn-primary{
+  color:white;
+  background:var(--blue);
+}
+
+.btn-primary:hover{
+  background:#3730a3;
+}
+
+.btn-light{
+  color:var(--text);
+  background:white;
+  border:1px solid var(--line);
+}
+
+.cards{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:14px;
+  margin-bottom:22px;
+}
+
+.card,.panel{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:14px;
+  box-shadow:0 8px 24px rgba(25,35,60,.07);
+}
+
+.card{
+  padding:18px;
+}
+
+.stat{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.stat-label{
+  color:var(--muted);
+  font-size:13px;
+}
+
+.stat-value{
+  display:block;
+  margin-top:7px;
+  font-size:26px;
+}
+
+.stat-icon{
+  width:40px;
+  height:40px;
+  display:grid;
+  place-items:center;
+  border-radius:10px;
+  background:#eef2ff;
+  color:var(--blue);
+}
+
+.panel{
+  overflow:hidden;
+}
+
+.panel-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  padding:18px 20px;
+  border-bottom:1px solid var(--line);
+}
+
+.panel-title{
+  margin:0;
+  font-size:18px;
+}
+
+.tools{
+  display:flex;
+  gap:9px;
+  flex-wrap:wrap;
+  padding:14px 20px;
+  border-bottom:1px solid var(--line);
+}
+
+.search{
+  position:relative;
+  flex:1 1 240px;
+}
+
+.search span{
+  position:absolute;
+  left:12px;
+  top:10px;
+  color:var(--muted);
+}
+
+.search input{
+  width:100%;
+  padding-left:32px;
+}
+
+input,select{
+  min-height:40px;
+  padding:9px 11px;
+  border:1px solid var(--line);
+  border-radius:8px;
+  background:white;
+  color:var(--text);
+  outline:none;
+}
+
+input:focus,select:focus{
+  border-color:var(--blue);
+  box-shadow:0 0 0 3px rgba(79,70,229,.12);
+}
+
+.table-wrap{
+  overflow-x:auto;
+}
+
+table{
+  width:100%;
+  min-width:700px;
+  border-collapse:collapse;
+}
+
+th,td{
+  padding:13px 20px;
+  border-bottom:1px solid #edf0f5;
+  text-align:left;
+  font-size:14px;
+  white-space:nowrap;
+}
+
+th{
+  background:#fafbfe;
+  color:var(--muted);
+  text-transform:uppercase;
+  font-size:11px;
+}
+
+.small{
+  color:var(--muted);
+  font-size:12px;
+  margin-top:3px;
+}
+
+.product-name{
+  font-weight:bold;
+}
+
+.badge{
+  display:inline-block;
+  padding:5px 9px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:bold;
+}
+
+.badge-ok{
+  color:#087f5b;
+  background:#e4f8ef;
+}
+
+.badge-low{
+  color:#a45b00;
+  background:#fff3d6;
+}
+
+.badge-out{
+  color:#b42333;
+  background:#ffe7e9;
+}
+
+.icon-btn{
+  padding:7px 9px;
+  border-radius:7px;
+  background:#f1f3f7;
+  color:var(--muted);
+}
+
+.empty{
+  padding:42px 20px;
+  text-align:center;
+  color:var(--muted);
+}
+
+.empty strong{
+  display:block;
+  color:var(--text);
+  margin-bottom:5px;
+}
+
+.hidden{
+  display:none!important;
+}
+
+.cashier-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.6fr) minmax(280px,.8fr);
+  gap:16px;
+  align-items:start;
+}
+
+.cashier-grid .panel{
+  border-top:4px solid var(--green);
+}
+
+.cashier-grid .summary{
+  border-top-color:var(--orange);
+  position:sticky;
+  top:20px;
+}
+
+.cashier-grid .panel-header{
+  background:#effaf4;
+}
+
+.cashier-grid .summary .panel-header{
+  background:#fff8e7;
+}
+
+.cashier-scan{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:16px 20px 8px;
+  background:#f4fcf7;
+}
+
+.scan-label{
+  min-width:145px;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  font-size:13px;
+}
+
+.scan-label span{
+  color:var(--green);
+  font-size:11px;
+}
+
+.cashier-scan input{
+  flex:1;
+  min-width:0;
+  height:45px;
+  font-size:16px;
+  border-color:#7dcba5;
+}
+
+.scan-count{
+  padding:8px 20px 14px;
+  color:#087f5b;
+  background:#f4fcf7;
+  font-size:13px;
+  font-weight:bold;
+}
+
+.summary-body{
+  padding:20px;
+}
+
+.summary-line,.summary-total{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  padding:10px 0;
+}
+
+.summary-line{
+  color:var(--muted);
+}
+
+.summary-total{
+  margin-top:15px;
+  padding-top:17px;
+  border-top:1px solid var(--line);
+  font-size:18px;
+}
+
+.summary-total strong{
+  color:var(--green);
+  font-size:25px;
+}
+
+.full-btn{
+  width:100%;
+  margin-top:12px;
+}
+
+.qty{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+}
+
+.qty button{
+  width:26px;
+  height:26px;
+  border-radius:6px;
+  background:#eef2ff;
+  color:var(--blue);
+  font-weight:bold;
+}
+
+.sales-summary{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:1px;
+  background:var(--line);
+}
+
+.sales-summary div{
+  padding:16px 20px;
+  background:white;
+}
+
+.sales-summary span{
+  display:block;
+  color:var(--muted);
+  font-size:12px;
+  margin-bottom:6px;
+}
+
+.sales-summary strong{
+  font-size:21px;
+}
+
+.modal-bg{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:10;
+  padding:20px;
+  align-items:center;
+  justify-content:center;
+  background:rgba(10,15,30,.5);
+}
+
+.modal-bg.open{
+  display:flex;
+}
+
+.modal{
+  width:min(520px,100%);
+  max-height:94vh;
+  overflow:auto;
+  background:white;
+  border-radius:15px;
+}
+
+.modal-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:18px 21px;
+  border-bottom:1px solid var(--line);
+}
+
+.modal-head h2{
+  margin:0;
+  font-size:19px;
+}
+
+.close{
+  background:transparent;
+  color:var(--muted);
+  font-size:25px;
+}
+
+.form{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  padding:20px;
+}
+
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.field.full,.form-footer{
+  grid-column:1/-1;
+}
+
+.form-footer{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+}
+
+.scanner-content{
+  padding:20px;
+}
+
+.camera-box{
+  height:225px;
+  display:grid;
+  place-items:center;
+  position:relative;
+  overflow:hidden;
+  margin:15px 0;
+  border-radius:12px;
+  background:#121827;
+  color:#adb5c7;
+}
+
+.camera-box.done{
+  background:#e4f8ef;
+  color:#087f5b;
+  font-size:42px;
+  font-weight:bold;
+}
+
+#video{
+  display:none;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.camera-box.active #video{
+  display:block;
+}
+
+.guide{
+  display:none;
+  position:absolute;
+  width:72%;
+  height:65px;
+  border:2px solid #8bffcb;
+  border-radius:9px;
+}
+
+.camera-box.active .guide{
+  display:block;
+}
+
+.scanner-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.scanner-actions input{
+  flex:1;
+  min-width:220px;
+}
+
+.scan-result{
+  margin-top:12px;
+  padding:11px;
+  border-radius:8px;
+  background:#f3f5f9;
+  color:var(--muted);
+  font-size:13px;
+}
+
+.scan-result.ok{
+  color:#087f5b;
+  background:#e4f8ef;
+  font-weight:bold;
+}
+
+.scan-result.error{
+  color:#b42333;
+  background:#ffe7e9;
+  font-weight:bold;
+}
+
+.receipt{
+  width:min(440px,100%);
+  max-height:94vh;
+  overflow:auto;
+  background:white;
+  border-radius:14px;
+}
+
+.receipt-paper{
+  margin:20px;
+  padding:20px;
+  border:1px dashed #b8c0ce;
+  font-family:"Courier New",monospace;
+  font-size:12px;
+}
+
+.receipt-head{
+  text-align:center;
+  padding-bottom:13px;
+  margin-bottom:13px;
+  border-bottom:1px dashed #999;
+}
+
+.receipt-head strong{
+  display:block;
+  font-size:18px;
+  margin-bottom:5px;
+}
+
+.receipt-head span{
+  display:block;
+  line-height:1.5;
+}
+
+.receipt-meta,.receipt-line{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.receipt-item{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:4px 8px;
+  padding:8px 0;
+  border-bottom:1px dotted #aaa;
+}
+
+.receipt-item small{
+  grid-column:1;
+  color:#666;
+}
+
+.receipt-item strong{
+  grid-column:2;
+  grid-row:1/span 2;
+}
+
+.receipt-totals{
+  margin-top:12px;
+  padding-top:9px;
+  border-top:1px dashed #999;
+}
+
+.receipt-line{
+  margin:6px 0;
+}
+
+.receipt-total{
+  font-size:17px;
+  font-weight:bold;
+}
+
+.receipt-thanks{
+  text-align:center;
+  border-top:1px dashed #999;
+  margin-top:14px;
+  padding-top:13px;
+}
+
+.receipt-buttons{
+  display:flex;
+  gap:8px;
+  padding:0 20px 20px;
+}
+
+.receipt-buttons .btn{
+  flex:1;
+}
+
+#toast{
+  position:fixed;
+  right:20px;
+  bottom:20px;
+  z-index:30;
+  padding:13px 17px;
+  border-radius:9px;
+  color:white;
+  background:#192033;
+}
+
+@media(max-width:900px){
+  .sidebar{
+    width:70px;
+    padding:18px 9px;
+  }
+
+  .logo{
+    justify-content:center;
+    margin:0 0 25px;
+  }
+
+  .logo span,
+  .menu-title,
+  .menu button span,
+  .side-info{
+    display:none;
+  }
+
+  .menu button{
+    text-align:center;
+    font-size:19px;
+  }
+
+  .cards{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .cashier-grid{
+    grid-template-columns:1fr;
+  }
+
+  .cashier-grid .summary{
+    position:static;
+  }
+}
+
+@media(max-width:600px){
+  .app{
+    display:block;
+  }
+
+  .sidebar{
+    width:100%;
+    height:64px;
+    padding:8px 12px;
+    flex-direction:row;
+    align-items:center;
+    position:sticky;
+    top:0;
+    z-index:5;
+  }
+
+  .logo{
+    flex:1;
+    justify-content:flex-start;
+    margin:0;
+  }
+
+  .menu{
+    display:flex;
+    gap:3px;
+  }
+
+  .menu button{
+    margin:0;
+    padding:9px;
+  }
+
+  main{
+    padding:20px 13px 30px;
+  }
+
+  .topbar{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .actions{
+    width:100%;
+  }
+
+  .actions .btn{
+    flex:1;
+    padding:10px 7px;
+  }
+
+  .cards{
+    gap:8px;
+  }
+
+  .card{
+    padding:13px;
+  }
+
+  .stat-value{
+    font-size:21px;
+  }
+
+  .stat-label{
+    font-size:11px;
+  }
+
+  .panel-header{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .cashier-scan{
+    flex-direction:column;
+    align-items:stretch;
+    padding:13px;
+  }
+
+  .cashier-scan button{
+    width:100%;
+  }
+
+  .form{
+    grid-template-columns:1fr;
+  }
+
+  .field.full,.form-footer{
+    grid-column:auto;
+  }
+
+  .modal-bg{
+    padding:12px;
+    align-items:flex-end;
+  }
+
+  .sales-summary{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .sales-summary div{
+    padding:13px;
+  }
+
+  .scanner-actions{
+    flex-direction:column;
+  }
+
+  .scanner-actions button,
+  .scanner-actions input{
+    width:100%;
+  }
+}
+</style>
 </head>
+
 <body>
-  <div class="app">
-    <aside class="sidebar">
-      <div class="brand"><div class="brand-icon">📦</div><span>Estoque Fácil</span></div>
-      <div class="nav-title">Menu</div>
-      <nav class="nav">
-        <button class="active" onclick="showView('estoque', this)">📊 <span>Estoque</span></button>
-        <button onclick="showView('caixa', this)">🛒 <span>Caixa</span></button>
-        <button onclick="showView('vendas', this)">🧾 <span>Vendas</span></button>
-        <button onclick="showView('movimentos', this)">↕️ <span>Movimentos</span></button>
-      </nav>
-      <div class="sidebar-footer">Seus dados ficam salvos neste navegador.</div>
-    </aside>
 
-    <main class="main">
-      <div class="topbar">
-        <div><h1 id="pageTitle">Controle de estoque</h1><p class="subtitle" id="pageSubtitle">Acompanhe seus produtos de forma simples.</p></div>
-        <div class="actions"><button class="btn btn-light" onclick="openScanner()">📷 Ler código</button><button class="btn btn-light" onclick="exportData()">⬇ Exportar</button><button class="btn btn-primary" onclick="openProductModal()">＋ Novo produto</button></div>
-      </div>
+<div class="app">
 
-      <section class="cards">
-        <div class="card stat"><div><span class="stat-label">Produtos cadastrados</span><strong class="stat-value" id="totalProducts">0</strong></div><div class="stat-icon">📦</div></div>
-        <div class="card stat"><div><span class="stat-label">Itens em estoque</span><strong class="stat-value" id="totalItems">0</strong></div><div class="stat-icon">✓</div></div>
-        <div class="card stat"><div><span class="stat-label">Estoque baixo</span><strong class="stat-value" id="lowStock">0</strong></div><div class="stat-icon">⚠</div></div>
-        <div class="card stat"><div><span class="stat-label">Valor em estoque</span><strong class="stat-value" id="stockValue">R$ 0,00</strong></div><div class="stat-icon">R$</div></div>
-      </section>
-
-      <section class="panel" id="stockView">
-        <div class="panel-header"><h2 class="panel-title">Produtos</h2><span class="subtitle" id="lastUpdate"></span></div>
-        <div class="tools"><div class="search"><span>⌕</span><input id="search" type="search" placeholder="Buscar por produto ou SKU..." oninput="renderProducts()" /></div><select id="categoryFilter" onchange="renderProducts()"><option value="">Todas as categorias</option></select><select id="statusFilter" onchange="renderProducts()"><option value="">Todos os status</option><option value="ok">Estoque normal</option><option value="low">Estoque baixo</option><option value="out">Sem estoque</option></select></div>
-        <div class="table-wrap"><table><thead><tr><th>Produto</th><th>Categoria</th><th>Quantidade</th><th>Preço unitário</th><th>Status</th><th>Ações</th></tr></thead><tbody id="productTable"></tbody></table><div class="empty" id="emptyState" style="display:none"><strong>Nenhum produto encontrado</strong>Cadastre um produto ou ajuste os filtros.</div></div>
-      </section>
-
-      <section class="cashier-grid" id="cashierView" style="display:none">
-        <div class="panel cashier-cart">
-          <div class="panel-header"><div><h2 class="panel-title">🛒 Caixa registrador</h2><p class="subtitle">Passe cada produto no leitor para registrar a compra.</p></div><div class="actions"><button class="btn btn-light" onclick="clearCart()">↻ Nova venda</button><button class="btn btn-primary" onclick="openScanner('cashier')">📷 Câmera</button></div></div>
-          <div class="cashier-scan"><div class="scan-label"><strong>Leitura do produto</strong><span id="cashierStatus">Aguardando leitura...</span></div><input id="cashierScanInput" autocomplete="off" inputmode="numeric" autofocus placeholder="Passe o código de barras no leitor" onkeydown="cashierScan(event)" /><button class="btn btn-primary" onclick="addCashierByCode()">Registrar produto</button></div>
-          <div class="table-wrap"><table><thead><tr><th>Produto</th><th>Preço</th><th>Qtd.</th><th>Subtotal</th><th></th></tr></thead><tbody id="cartTable"></tbody></table><div class="empty" id="cartEmpty"><strong>Caixa vazio</strong>Leia um código de barras para adicionar produtos.</div></div>
-        </div>
-        <div class="panel cashier-summary">
-          <div class="panel-header"><h2 class="panel-title">Resumo da venda</h2></div>
-          <div class="summary-body"><div class="summary-line"><span>Itens</span><strong id="cartItems">0</strong></div><div class="summary-line"><span>Subtotal</span><strong id="cartSubtotal">R$ 0,00</strong></div><div class="field"><label for="discount">Desconto (R$)</label><input id="discount" type="number" min="0" step="0.01" value="0" oninput="renderCart()" /></div><div class="field"><label for="payment">Forma de pagamento</label><select id="payment"><option>Pix</option><option>Dinheiro</option><option>Cartão de débito</option><option>Cartão de crédito</option></select></div><div class="field"><label for="customer">Cliente (opcional)</label><input id="customer" placeholder="Nome do cliente" /></div><div class="summary-total"><span>Total</span><strong id="cartTotal">R$ 0,00</strong></div><button class="btn btn-primary finalize-btn" onclick="finalizeSale()">✓ Finalizar venda</button><button class="btn btn-light finalize-btn" onclick="clearCart()">Limpar caixa</button></div>
-        </div>
-      </section>
-
-      <section class="panel" id="salesView" style="display:none">
-        <div class="panel-header"><div><h2 class="panel-title">Registro de vendas</h2><p class="subtitle">Consulte os comprovantes e analise o que foi vendido no caixa.</p></div><button class="btn btn-light" onclick="exportSales()">⬇ Exportar CSV</button></div>
-        <div class="sales-summary"><div><span>Total de vendas</span><strong id="salesCount">0</strong></div><div><span>Itens vendidos</span><strong id="soldItems">0</strong></div><div><span>Faturamento</span><strong id="salesRevenue">R$ 0,00</strong></div><div><span>Ticket médio</span><strong id="averageTicket">R$ 0,00</strong></div></div>
-        <div class="tools sales-tools"><div class="search"><span>⌕</span><input id="salesSearch" type="search" placeholder="Buscar por número, cliente ou produto..." oninput="renderSales()" /></div><input id="salesDate" type="date" onchange="renderSales()" title="Filtrar por data" /><select id="salesPayment" onchange="renderSales()"><option value="">Todos os pagamentos</option><option>Pix</option><option>Dinheiro</option><option>Cartão de débito</option><option>Cartão de crédito</option></select></div>
-        <div class="table-wrap"><table><thead><tr><th>Venda</th><th>Data e hora</th><th>Produtos</th><th>Pagamento</th><th>Cliente</th><th>Total</th><th>Ações</th></tr></thead><tbody id="salesTable"></tbody></table><div class="empty" id="salesEmpty"><strong>Nenhuma venda registrada</strong>As vendas finalizadas no caixa aparecerão aqui.</div></div>
-      </section>
-
-      <section class="panel" id="movementView" style="display:none"><div class="panel-header"><h2 class="panel-title">Histórico de movimentos</h2></div><div class="table-wrap"><table><thead><tr><th>Data</th><th>Produto</th><th>Tipo</th><th>Quantidade</th><th>Observação</th></tr></thead><tbody id="movementTable"></tbody></table><div class="empty" id="movementEmpty" style="display:none"><strong>Nenhum movimento registrado</strong>As entradas e saídas aparecerão aqui.</div></div></section>
-    </main>
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">📦</div>
+    <span>Estoque Fácil</span>
   </div>
 
-  <div class="modal-backdrop" id="productModal"><div class="modal"><div class="modal-header"><h2 id="modalTitle">Novo produto</h2><button class="close" onclick="closeModal()">×</button></div><form class="form" id="productForm" onsubmit="saveProduct(event)"><input type="hidden" id="productId" /><div class="field full"><label for="name">Nome do produto *</label><input id="name" required placeholder="Ex.: Café 500g" /></div><div class="field"><label for="sku">SKU / Código interno</label><input id="sku" placeholder="Ex.: CAF-001" /></div><div class="field"><label for="barcode">Código de barras</label><input id="barcode" inputmode="numeric" placeholder="Ex.: 7891234567890" /></div><div class="field"><label for="category">Categoria</label><input id="category" placeholder="Ex.: Alimentos" /></div><div class="field"><label for="quantity">Quantidade *</label><input id="quantity" type="number" min="0" step="1" required value="0" /></div><div class="field"><label for="minimum">Estoque mínimo</label><input id="minimum" type="number" min="0" step="1" value="5" /></div><div class="field"><label for="price">Preço unitário (R$)</label><input id="price" type="number" min="0" step="0.01" value="0" /></div><div class="form-footer"><button type="button" class="btn btn-light" onclick="closeModal()">Cancelar</button><button class="btn btn-primary">Salvar produto</button></div></form></div></div>
-  <div class="modal-backdrop" id="movementModal"><div class="modal"><div class="modal-header"><h2 id="movementTitle">Registrar movimento</h2><button class="close" onclick="closeMovementModal()">×</button></div><form class="form" id="movementForm" onsubmit="saveMovement(event)"><input type="hidden" id="movementProductId" /><input type="hidden" id="movementType" /><div class="field full"><label id="movementProductLabel">Produto</label><input id="movementProductName" disabled /></div><div class="field"><label for="movementQuantity">Quantidade *</label><input id="movementQuantity" type="number" min="1" step="1" required value="1" /></div><div class="field"><label for="movementNote">Observação</label><input id="movementNote" placeholder="Ex.: Compra do fornecedor" /></div><div class="form-footer"><button type="button" class="btn btn-light" onclick="closeMovementModal()">Cancelar</button><button class="btn btn-primary">Confirmar</button></div></form></div></div>
-  <div class="modal-backdrop" id="scanModal"><div class="modal scanner-modal"><div class="modal-header"><h2 id="scanModalTitle">Leitura de código de barras</h2><button class="close" onclick="closeScanner()">×</button></div><div class="scanner-body"><p class="subtitle">Aponte a câmera para o código ou use um leitor USB/Bluetooth.</p><div class="camera-box"><video id="scannerVideo" playsinline muted></video><div class="camera-guide"></div><span id="cameraMessage">Câmera desativada</span></div><div class="scanner-actions"><button type="button" class="btn btn-light" id="cameraButton" onclick="startCamera()">📷 Ativar câmera</button><button type="button" class="btn btn-light" onclick="openNativeCamera()">📸 Tirar foto</button><input id="barcodeScanInput" autocomplete="off" inputmode="numeric" placeholder="Leia ou digite o código e pressione Enter" onkeydown="scanFromInput(event)" /><input id="nativeCameraInput" type="file" accept="image/*" capture="environment" onchange="readBarcodePhoto(event)" hidden /></div><div class="scan-result" id="scanResult">Pronto para ler um produto.</div></div></div></div>
-  <div class="modal-backdrop" id="receiptModal"><div class="receipt-modal"><div class="modal-header receipt-actions"><h2>Comprovante da venda</h2><button class="close" onclick="closeReceipt()">×</button></div><div id="receiptPaper" class="receipt-paper"></div><div class="receipt-footer"><button class="btn btn-light" onclick="closeReceipt()">Fechar</button><button class="btn btn-primary" onclick="printReceipt()">🖨 Imprimir comprovante</button></div></div></div>
-  <div class="toast" id="toast"></div>
+  <div class="menu-title">Menu</div>
 
-  <script>
-    const defaultProducts = [
-      { id: '1', name: 'Café 500g', sku: 'CAF-001', category: 'Alimentos', quantity: 24, minimum: 5, price: 18.90 },
-      { id: '2', name: 'Copo descartável 200ml', sku: 'COP-002', category: 'Descartáveis', quantity: 8, minimum: 10, price: 12.50 },
-      { id: '3', name: 'Água mineral 500ml', sku: 'AGU-003', category: 'Bebidas', quantity: 0, minimum: 12, price: 2.50 }
-    ];
-    let products = JSON.parse(localStorage.getItem('estoque-produtos') || 'null') || defaultProducts;
-    let movements = JSON.parse(localStorage.getItem('estoque-movimentos') || '[]');
-    let sales = JSON.parse(localStorage.getItem('estoque-vendas') || '[]');
-    let cart = [];
-    let scannerMode = 'stock';
-    const money = value => Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    const save = () => { localStorage.setItem('estoque-produtos', JSON.stringify(products)); localStorage.setItem('estoque-movimentos', JSON.stringify(movements)); localStorage.setItem('estoque-vendas', JSON.stringify(sales)); };
-    const statusOf = p => p.quantity === 0 ? 'out' : p.quantity <= p.minimum ? 'low' : 'ok';
-    const statusLabel = s => ({ ok: 'Normal', low: 'Estoque baixo', out: 'Sem estoque' }[s]);
-    function render() { updateStats(); updateCategories(); renderProducts(); renderMovements(); renderSales(); renderCart(); document.getElementById('lastUpdate').textContent = 'Atualizado agora'; }
-    function updateStats() {
-      document.getElementById('totalProducts').textContent = products.length;
-      document.getElementById('totalItems').textContent = products.reduce((sum, p) => sum + Number(p.quantity), 0);
-      document.getElementById('lowStock').textContent = products.filter(p => statusOf(p) !== 'ok').length;
-      document.getElementById('stockValue').textContent = money(products.reduce((sum, p) => sum + Number(p.quantity) * Number(p.price), 0));
+  <nav class="menu">
+    <button class="active" onclick="showView('estoque',this)">
+      📊 <span>Estoque</span>
+    </button>
+
+    <button onclick="showView('caixa',this)">
+      🛒 <span>Caixa</span>
+    </button>
+
+    <button onclick="showView('vendas',this)">
+      🧾 <span>Vendas</span>
+    </button>
+
+    <button onclick="showView('movimentos',this)">
+      ↕️ <span>Movimentos</span>
+    </button>
+  </nav>
+
+  <div class="side-info">
+    Dados salvos neste navegador.
+  </div>
+</aside>
+
+<main>
+
+<header class="topbar">
+  <div>
+    <h1 id="pageTitle">Controle de estoque</h1>
+    <p class="subtitle" id="pageSubtitle">
+      Acompanhe seus produtos de forma simples.
+    </p>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-light" onclick="openScanner('stock')">
+      📷 Ler código
+    </button>
+
+    <button class="btn btn-light" onclick="exportBackup()">
+      ⬇ Exportar
+    </button>
+
+    <button class="btn btn-primary" onclick="openProduct()">
+      ＋ Novo produto
+    </button>
+  </div>
+</header>
+
+<section class="cards" id="dashboardCards">
+
+  <div class="card stat">
+    <div>
+      <span class="stat-label">Produtos cadastrados</span>
+      <strong class="stat-value" id="statProducts">0</strong>
+    </div>
+    <div class="stat-icon">📦</div>
+  </div>
+
+  <div class="card stat">
+    <div>
+      <span class="stat-label">Itens em estoque</span>
+      <strong class="stat-value" id="statItems">0</strong>
+    </div>
+    <div class="stat-icon">✓</div>
+  </div>
+
+  <div class="card stat">
+    <div>
+      <span class="stat-label">Estoque baixo</span>
+      <strong class="stat-value" id="statLow">0</strong>
+    </div>
+    <div class="stat-icon">⚠</div>
+  </div>
+
+  <div class="card stat">
+    <div>
+      <span class="stat-label">Valor em estoque</span>
+      <strong class="stat-value" id="statValue">R$ 0,00</strong>
+    </div>
+    <div class="stat-icon">R$</div>
+  </div>
+
+</section>
+
+<section class="panel" id="stockView">
+
+  <div class="panel-header">
+    <h2 class="panel-title">Produtos</h2>
+    <span class="subtitle" id="updated"></span>
+  </div>
+
+  <div class="tools">
+
+    <div class="search">
+      <span>⌕</span>
+      <input
+        id="productSearch"
+        placeholder="Buscar produto ou código..."
+        oninput="renderProducts()"
+      >
+    </div>
+
+    <select id="categoryFilter" onchange="renderProducts()">
+      <option value="">Todas as categorias</option>
+    </select>
+
+    <select id="statusFilter" onchange="renderProducts()">
+      <option value="">Todos os status</option>
+      <option value="ok">Estoque normal</option>
+      <option value="low">Estoque baixo</option>
+      <option value="out">Sem estoque</option>
+    </select>
+
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Produto</th>
+          <th>Categoria</th>
+          <th>Quantidade</th>
+          <th>Preço</th>
+          <th>Status</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+
+      <tbody id="productsTable"></tbody>
+    </table>
+
+    <div class="empty" id="productsEmpty">
+      <strong>Nenhum produto encontrado</strong>
+      Cadastre um produto para começar.
+    </div>
+  </div>
+
+</section>
+
+<section class="cashier-grid hidden" id="cashierView">
+
+  <div class="panel">
+
+    <div class="panel-header">
+      <div>
+        <h2 class="panel-title">🛒 Caixa registrador</h2>
+        <p class="subtitle">
+          Leia um produto por vez no caixa.
+        </p>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-light" onclick="clearCart()">
+          ↻ Nova venda
+        </button>
+
+        <button class="btn btn-primary" onclick="openScanner('cashier')">
+          📷 Câmera
+        </button>
+      </div>
+    </div>
+
+    <div class="cashier-scan">
+
+      <div class="scan-label">
+        <strong>Leitura do produto</strong>
+        <span id="cashierStatus">Aguardando leitura...</span>
+      </div>
+
+      <input
+        id="cashierInput"
+        placeholder="Passe o código de barras"
+        autocomplete="off"
+        inputmode="numeric"
+        onkeydown="cashierKey(event)"
+      >
+
+      <button class="btn btn-primary" onclick="registerCashierProduct()">
+        Registrar produto
+      </button>
+
+    </div>
+
+    <div class="scan-count" id="scanCount">
+      0 itens registrados nesta venda
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Produto</th>
+            <th>Preço</th>
+            <th>Quantidade</th>
+            <th>Subtotal</th>
+            <th></th>
+          </tr>
+        </thead>
+
+        <tbody id="cartTable"></tbody>
+      </table>
+
+      <div class="empty" id="cartEmpty">
+        <strong>Caixa vazio</strong>
+        Leia um código para adicionar produtos.
+      </div>
+    </div>
+
+  </div>
+
+  <div class="panel summary">
+
+    <div class="panel-header">
+      <h2 class="panel-title">Resumo da venda</h2>
+    </div>
+
+    <div class="summary-body">
+
+      <div class="summary-line">
+        <span>Itens</span>
+        <strong id="cartItems">0</strong>
+      </div>
+
+      <div class="summary-line">
+        <span>Subtotal</span>
+        <strong id="cartSubtotal">R$ 0,00</strong>
+      </div>
+
+      <div class="field">
+        <label>Desconto</label>
+        <input id="discount" type="number" min="0" step="0.01" value="0" oninput="renderCart()">
+      </div>
+
+      <div class="field">
+        <label>Pagamento</label>
+        <select id="payment">
+          <option>Pix</option>
+          <option>Dinheiro</option>
+          <option>Cartão de débito</option>
+          <option>Cartão de crédito</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Cliente</label>
+        <input id="customer" placeholder="Opcional">
+      </div>
+
+      <div class="summary-total">
+        <span>Total</span>
+        <strong id="cartTotal">R$ 0,00</strong>
+      </div>
+
+      <button class="btn btn-primary full-btn" onclick="finishSale()">
+        ✓ Finalizar venda
+      </button>
+
+      <button class="btn btn-light full-btn" onclick="clearCart()">
+        Limpar caixa
+      </button>
+
+    </div>
+  </div>
+
+</section>
+
+<section class="panel hidden" id="salesView">
+
+  <div class="panel-header">
+    <div>
+      <h2 class="panel-title">Registro de vendas</h2>
+      <p class="subtitle">
+        Consulte os comprovantes e analise as vendas.
+      </p>
+    </div>
+
+    <button class="btn btn-light" onclick="exportSalesCsv()">
+      ⬇ Exportar CSV
+    </button>
+  </div>
+
+  <div class="sales-summary">
+
+    <div>
+      <span>Total de vendas</span>
+      <strong id="salesCount">0</strong>
+    </div>
+
+    <div>
+      <span>Itens vendidos</span>
+      <strong id="soldItems">0</strong>
+    </div>
+
+    <div>
+      <span>Faturamento</span>
+      <strong id="salesRevenue">R$ 0,00</strong>
+    </div>
+
+    <div>
+      <span>Ticket médio</span>
+      <strong id="averageTicket">R$ 0,00</strong>
+    </div>
+
+  </div>
+
+  <div class="tools">
+
+    <div class="search">
+      <span>⌕</span>
+      <input
+        id="salesSearch"
+        placeholder="Buscar venda, cliente ou produto..."
+        oninput="renderSales()"
+      >
+    </div>
+
+    <input id="salesDate" type="date" onchange="renderSales()">
+
+    <select id="salesPayment" onchange="renderSales()">
+      <option value="">Todos os pagamentos</option>
+      <option>Pix</option>
+      <option>Dinheiro</option>
+      <option>Cartão de débito</option>
+      <option>Cartão de crédito</option>
+    </select>
+
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Venda</th>
+          <th>Data</th>
+          <th>Produtos</th>
+          <th>Pagamento</th>
+          <th>Cliente</th>
+          <th>Total</th>
+          <th></th>
+        </tr>
+      </thead>
+
+      <tbody id="salesTable"></tbody>
+    </table>
+
+    <div class="empty" id="salesEmpty">
+      <strong>Nenhuma venda registrada</strong>
+      As vendas finalizadas aparecerão aqui.
+    </div>
+  </div>
+
+</section>
+
+<section class="panel hidden" id="movementView">
+
+  <div class="panel-header">
+    <h2 class="panel-title">Histórico de movimentos</h2>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Produto</th>
+          <th>Tipo</th>
+          <th>Quantidade</th>
+          <th>Observação</th>
+        </tr>
+      </thead>
+
+      <tbody id="movementTable"></tbody>
+    </table>
+
+    <div class="empty" id="movementEmpty">
+      <strong>Nenhum movimento registrado</strong>
+      As movimentações aparecerão aqui.
+    </div>
+  </div>
+
+</section>
+
+</main>
+</div>
+
+<div class="modal-bg" id="productModal">
+  <div class="modal">
+
+    <div class="modal-head">
+      <h2 id="productModalTitle">Novo produto</h2>
+      <button class="close" onclick="closeModal()">×</button>
+    </div>
+
+    <form class="form" onsubmit="saveProduct(event)">
+
+      <input type="hidden" id="productId">
+
+      <div class="field full">
+        <label>Nome do produto *</label>
+        <input id="productName" required placeholder="Ex.: Café 500g">
+      </div>
+
+      <div class="field">
+        <label>SKU / Código interno</label>
+        <input id="productSku" placeholder="Ex.: CAF-001">
+      </div>
+
+      <div class="field">
+        <label>Código de barras</label>
+        <input id="productBarcode" inputmode="numeric" placeholder="Ex.: 7891234567890">
+      </div>
+
+      <div class="field">
+        <label>Categoria</label>
+        <input id="productCategory" placeholder="Ex.: Alimentos">
+      </div>
+
+      <div class="field">
+        <label>Quantidade *</label>
+        <input id="productQuantity" type="number" min="0" required value="0">
+      </div>
+
+      <div class="field">
+        <label>Estoque mínimo</label>
+        <input id="productMinimum" type="number" min="0" value="5">
+      </div>
+
+      <div class="field">
+        <label>Preço unitário</label>
+        <input id="productPrice" type="number" min="0" step="0.01" value="0">
+      </div>
+
+      <div class="form-footer">
+        <button type="button" class="btn btn-light" onclick="closeModal()">
+          Cancelar
+        </button>
+
+        <button class="btn btn-primary">
+          Salvar produto
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<div class="modal-bg" id="movementModal">
+  <div class="modal">
+
+    <div class="modal-head">
+      <h2 id="movementTitle">Registrar movimento</h2>
+      <button class="close" onclick="closeMovement()">×</button>
+    </div>
+
+    <form class="form" onsubmit="saveMovement(event)">
+
+      <input type="hidden" id="movementId">
+      <input type="hidden" id="movementType">
+
+      <div class="field full">
+        <label>Produto</label>
+        <input id="movementProduct" disabled>
+      </div>
+
+      <div class="field">
+        <label>Quantidade</label>
+        <input id="movementQuantity" type="number" min="1" required value="1">
+      </div>
+
+      <div class="field">
+        <label>Observação</label>
+        <input id="movementNote" placeholder="Ex.: Compra do fornecedor">
+      </div>
+
+      <div class="form-footer">
+        <button type="button" class="btn btn-light" onclick="closeMovement()">
+          Cancelar
+        </button>
+
+        <button class="btn btn-primary">
+          Confirmar
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<div class="modal-bg" id="scannerModal">
+  <div class="modal">
+
+    <div class="modal-head">
+      <h2 id="scannerTitle">Leitura de código</h2>
+      <button class="close" onclick="closeScanner()">×</button>
+    </div>
+
+    <div class="scanner-content">
+
+      <p class="subtitle">
+        Leia um produto por vez.
+      </p>
+
+      <div class="camera-box" id="cameraBox">
+        <video id="video" playsinline muted></video>
+        <div class="guide"></div>
+        <span id="cameraMessage">Câmera desativada</span>
+      </div>
+
+      <div class="scanner-actions">
+
+        <button class="btn btn-light" id="cameraButton">
+          📷 Ativar câmera
+        </button>
+
+        <button class="btn btn-light" onclick="takePhoto()">
+          📸 Tirar foto
+        </button>
+
+        <input
+          id="scannerInput"
+          placeholder="Digite ou leia o código e pressione Enter"
+          onkeydown="scannerKey(event)"
+        >
+
+        <input
+          id="photoInput"
+          type="file"
+          accept="image/*"
+          capture="environment"
+          hidden
+          onchange="readPhoto(event)"
+        >
+
+      </div>
+
+      <div class="scan-result" id="scanResult">
+        Pronto para ler um produto.
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="receiptModal">
+  <div class="receipt">
+
+    <div class="modal-head">
+      <h2>Comprovante da venda</h2>
+      <button class="close" onclick="closeReceipt()">×</button>
+    </div>
+
+    <div id="receiptPaper" class="receipt-paper"></div>
+
+    <div class="receipt-buttons">
+      <button class="btn btn-light" onclick="closeReceipt()">
+        Fechar
+      </button>
+
+      <button class="btn btn-primary" onclick="printReceipt()">
+        🖨 Imprimir
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+var products = JSON.parse(
+  localStorage.getItem("estoque_produtos") || "null"
+) || [
+  {
+    id:"1",
+    name:"Café 500g",
+    sku:"CAF-001",
+    barcode:"",
+    category:"Alimentos",
+    quantity:24,
+    minimum:5,
+    price:18.90
+  },
+  {
+    id:"2",
+    name:"Copo descartável 200ml",
+    sku:"COP-002",
+    barcode:"",
+    category:"Descartáveis",
+    quantity:8,
+    minimum:10,
+    price:12.50
+  },
+  {
+    id:"3",
+    name:"Água mineral 500ml",
+    sku:"AGU-003",
+    barcode:"",
+    category:"Bebidas",
+    quantity:0,
+    minimum:12,
+    price:2.50
+  }
+];
+
+var movements = JSON.parse(
+  localStorage.getItem("estoque_movimentos") || "[]"
+);
+
+var sales = JSON.parse(
+  localStorage.getItem("estoque_vendas") || "[]"
+);
+
+var cart = [];
+var scannerMode = "stock";
+var scannerStream = null;
+var scannerActive = false;
+var audioContext = null;
+var cameraReading = false;
+
+function money(value){
+  return Number(value || 0).toLocaleString("pt-BR",{
+    style:"currency",
+    currency:"BRL"
+  });
+}
+
+function esc(value){
+  return String(value == null ? "" : value).replace(
+    /[&<>'"]/g,
+    function(c){
+      return {
+        "&":"&amp;",
+        "<":"&lt;",
+        ">":"&gt;",
+        "'":"&#39;",
+        "\"":"&quot;"
+      }[c];
     }
-    function updateCategories() {
-      const select = document.getElementById('categoryFilter'), current = select.value;
-      const categories = [...new Set(products.map(p => p.category).filter(Boolean))].sort((a,b) => a.localeCompare(b));
-      select.innerHTML = '<option value="">Todas as categorias</option>' + categories.map(c => `<option>${escapeHtml(c)}</option>`).join('');
-      select.value = categories.includes(current) ? current : '';
+  );
+}
+
+function save(){
+  localStorage.setItem(
+    "estoque_produtos",
+    JSON.stringify(products)
+  );
+
+  localStorage.setItem(
+    "estoque_movimentos",
+    JSON.stringify(movements)
+  );
+
+  localStorage.setItem(
+    "estoque_vendas",
+    JSON.stringify(sales)
+  );
+}
+
+function playScanSound(){
+  try{
+    audioContext = audioContext ||
+      new (window.AudioContext || window.webkitAudioContext)();
+
+    if(audioContext.state === "suspended"){
+      audioContext.resume();
     }
-    function renderProducts() {
-      const query = document.getElementById('search').value.toLowerCase().trim(), category = document.getElementById('categoryFilter').value, filter = document.getElementById('statusFilter').value;
-      const list = products.filter(p => (!query || `${p.name} ${p.sku}`.toLowerCase().includes(query)) && (!category || p.category === category) && (!filter || statusOf(p) === filter));
-      const tbody = document.getElementById('productTable');
-      document.getElementById('emptyState').style.display = list.length ? 'none' : 'block';
-      tbody.innerHTML = list.map(p => { const s = statusOf(p); return `<tr><td><div class="product-name">${escapeHtml(p.name)}</div><div class="sku">${escapeHtml(p.sku || 'Sem código')}</div></td><td>${escapeHtml(p.category || 'Sem categoria')}</td><td><strong>${p.quantity}</strong> un.</td><td>${money(p.price)}</td><td><span class="badge badge-${s}">${statusLabel(s)}</span></td><td><div class="row-actions"><button class="icon-btn" title="Entrada" onclick="openMovement('${p.id}', 'in')">＋</button><button class="icon-btn" title="Saída" onclick="openMovement('${p.id}', 'out')">−</button><button class="icon-btn" title="Editar" onclick="editProduct('${p.id}')">✎</button><button class="icon-btn" title="Excluir" onclick="deleteProduct('${p.id}')">🗑</button></div></td></tr>`; }).join('');
+
+    var oscillator = audioContext.createOscillator();
+    var gain = audioContext.createGain();
+
+    oscillator.type = "sine";
+
+    oscillator.frequency.setValueAtTime(
+      880,
+      audioContext.currentTime
+    );
+
+    oscillator.frequency.exponentialRampToValueAtTime(
+      1320,
+      audioContext.currentTime + .08
+    );
+
+    gain.gain.setValueAtTime(
+      .0001,
+      audioContext.currentTime
+    );
+
+    gain.gain.exponentialRampToValueAtTime(
+      .18,
+      audioContext.currentTime + .01
+    );
+
+    gain.gain.exponentialRampToValueAtTime(
+      .0001,
+      audioContext.currentTime + .14
+    );
+
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + .15);
+  }catch(error){}
+}
+
+function toast(message){
+  var box = document.getElementById("toast");
+
+  box.textContent = message;
+
+  clearTimeout(window.toastTimer);
+
+  window.toastTimer = setTimeout(function(){
+    box.textContent = "";
+  },2500);
+}
+
+function productCode(product){
+  return product.barcode || product.sku || "Sem código";
+}
+
+function findProduct(code){
+  var value = String(code || "")
+    .replace(/\s/g,"")
+    .trim();
+
+  return products.find(function(product){
+    return String(productCode(product))
+      .replace(/\s/g,"")
+      .trim() === value;
+  });
+}
+
+function status(product){
+  if(Number(product.quantity) === 0){
+    return "out";
+  }
+
+  if(Number(product.quantity) <= Number(product.minimum)){
+    return "low";
+  }
+
+  return "ok";
+}
+
+function statusText(value){
+  if(value === "out") return "Sem estoque";
+  if(value === "low") return "Estoque baixo";
+  return "Normal";
+}
+
+function renderAll(){
+  renderStats();
+  renderCategories();
+  renderProducts();
+  renderCart();
+  renderMovements();
+  renderSales();
+
+  document.getElementById("updated").textContent =
+    "Atualizado agora";
+}
+
+function renderStats(){
+  var totalItems = products.reduce(function(sum,product){
+    return sum + Number(product.quantity || 0);
+  },0);
+
+  var low = products.filter(function(product){
+    return status(product) !== "ok";
+  }).length;
+
+  var value = products.reduce(function(sum,product){
+    return sum +
+      Number(product.quantity || 0) *
+      Number(product.price || 0);
+  },0);
+
+  document.getElementById("statProducts").textContent =
+    products.length;
+
+  document.getElementById("statItems").textContent =
+    totalItems;
+
+  document.getElementById("statLow").textContent =
+    low;
+
+  document.getElementById("statValue").textContent =
+    money(value);
+}
+
+function renderCategories(){
+  var select = document.getElementById("categoryFilter");
+  var current = select.value;
+  var categories = [];
+
+  products.forEach(function(product){
+    if(product.category &&
+       categories.indexOf(product.category) === -1){
+      categories.push(product.category);
     }
-    function renderMovements() {
-      const tbody = document.getElementById('movementTable'); document.getElementById('movementEmpty').style.display = movements.length ? 'none' : 'block';
-      tbody.innerHTML = [...movements].reverse().map(m => `<tr><td>${new Date(m.date).toLocaleString('pt-BR')}</td><td>${escapeHtml(m.product)}</td><td><span class="badge ${m.type === 'Entrada' ? 'badge-ok' : 'badge-low'}">${m.type}</span></td><td>${m.quantity} un.</td><td>${escapeHtml(m.note || '—')}</td></tr>`).join('');
+  });
+
+  categories.sort();
+
+  select.innerHTML =
+    '<option value="">Todas as categorias</option>';
+
+  categories.forEach(function(category){
+    var option = document.createElement("option");
+    option.value = category;
+    option.textContent = category;
+    select.appendChild(option);
+  });
+
+  select.value =
+    categories.indexOf(current) >= 0
+      ? current
+      : "";
+}
+
+function renderProducts(){
+  var query = document
+    .getElementById("productSearch")
+    .value
+    .toLowerCase()
+    .trim();
+
+  var category =
+    document.getElementById("categoryFilter").value;
+
+  var filter =
+    document.getElementById("statusFilter").value;
+
+  var list = products.filter(function(product){
+    var text = (
+      product.name + " " +
+      (product.sku || "") + " " +
+      (product.barcode || "")
+    ).toLowerCase();
+
+    return (
+      (!query || text.indexOf(query) >= 0) &&
+      (!category || product.category === category) &&
+      (!filter || status(product) === filter)
+    );
+  });
+
+  var table = document.getElementById("productsTable");
+  var empty = document.getElementById("productsEmpty");
+
+  empty.style.display = list.length ? "none" : "block";
+
+  table.innerHTML = list.map(function(product){
+    var value = status(product);
+
+    return `
+      <tr>
+        <td>
+          <div class="product-name">${esc(product.name)}</div>
+          <div class="small">${esc(productCode(product))}</div>
+        </td>
+
+        <td>${esc(product.category || "Sem categoria")}</td>
+        <td><strong>${product.quantity}</strong> un.</td>
+        <td>${money(product.price)}</td>
+
+        <td>
+          <span class="badge badge-${value}">
+            ${statusText(value)}
+          </span>
+        </td>
+
+        <td>
+          <button class="icon-btn" onclick="openMovement('${product.id}','in')">＋</button>
+          <button class="icon-btn" onclick="openMovement('${product.id}','out')">−</button>
+          <button class="icon-btn" onclick="editProduct('${product.id}')">✎</button>
+          <button class="icon-btn" onclick="deleteProduct('${product.id}')">🗑</button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function showView(view,button){
+  document.querySelectorAll(".menu button").forEach(function(item){
+    item.classList.remove("active");
+  });
+
+  button.classList.add("active");
+
+  document.getElementById("stockView").classList.toggle(
+    "hidden",
+    view !== "estoque"
+  );
+
+  document.getElementById("cashierView").classList.toggle(
+    "hidden",
+    view !== "caixa"
+  );
+
+  document.getElementById("salesView").classList.toggle(
+    "hidden",
+    view !== "vendas"
+  );
+
+  document.getElementById("movementView").classList.toggle(
+    "hidden",
+    view !== "movimentos"
+  );
+
+  document.getElementById("dashboardCards").style.display =
+    view === "caixa" || view === "vendas"
+      ? "none"
+      : "grid";
+
+  if(view === "caixa"){
+    document.getElementById("pageTitle").textContent =
+      "Caixa registrador";
+
+    document.getElementById("pageSubtitle").textContent =
+      "Leia os produtos e finalize a venda.";
+
+    setTimeout(function(){
+      document.getElementById("cashierInput").focus();
+    },100);
+  }else if(view === "vendas"){
+    document.getElementById("pageTitle").textContent =
+      "Registro de vendas";
+
+    document.getElementById("pageSubtitle").textContent =
+      "Consulte comprovantes e analise as vendas.";
+  }else if(view === "movimentos"){
+    document.getElementById("pageTitle").textContent =
+      "Movimentos do estoque";
+
+    document.getElementById("pageSubtitle").textContent =
+      "Acompanhe entradas e saídas.";
+  }else{
+    document.getElementById("pageTitle").textContent =
+      "Controle de estoque";
+
+    document.getElementById("pageSubtitle").textContent =
+      "Acompanhe seus produtos de forma simples.";
+  }
+}
+
+function openProduct(product){
+  document.getElementById("productId").value =
+    product ? product.id : "";
+
+  document.getElementById("productModalTitle").textContent =
+    product ? "Editar produto" : "Novo produto";
+
+  document.getElementById("productName").value =
+    product ? product.name : "";
+
+  document.getElementById("productSku").value =
+    product ? product.sku || "" : "";
+
+  document.getElementById("productBarcode").value =
+    product ? product.barcode || product.sku || "" : "";
+
+  document.getElementById("productCategory").value =
+    product ? product.category || "" : "";
+
+  document.getElementById("productQuantity").value =
+    product ? product.quantity : 0;
+
+  document.getElementById("productMinimum").value =
+    product ? product.minimum : 5;
+
+  document.getElementById("productPrice").value =
+    product ? product.price : 0;
+
+  document.getElementById("productModal")
+    .classList.add("open");
+}
+
+function closeModal(){
+  document.getElementById("productModal")
+    .classList.remove("open");
+}
+
+function editProduct(id){
+  var product = products.find(function(item){
+    return item.id === id;
+  });
+
+  if(product){
+    openProduct(product);
+  }
+}
+
+function saveProduct(event){
+  event.preventDefault();
+
+  var id = document.getElementById("productId").value;
+
+  var product = {
+    id:id || String(Date.now()),
+    name:document.getElementById("productName").value.trim(),
+    sku:document.getElementById("productSku").value.trim(),
+    barcode:document.getElementById("productBarcode").value.trim(),
+    category:document.getElementById("productCategory").value.trim(),
+    quantity:Number(document.getElementById("productQuantity").value),
+    minimum:Number(document.getElementById("productMinimum").value),
+    price:Number(document.getElementById("productPrice").value)
+  };
+
+  if(id){
+    products = products.map(function(item){
+      return item.id === id ? product : item;
+    });
+  }else{
+    products.push(product);
+  }
+
+  save();
+  closeModal();
+  renderAll();
+  toast(id ? "Produto atualizado!" : "Produto cadastrado!");
+}
+
+function deleteProduct(id){
+  var product = products.find(function(item){
+    return item.id === id;
+  });
+
+  if(!product) return;
+
+  if(!confirm("Excluir " + product.name + "?")){
+    return;
+  }
+
+  products = products.filter(function(item){
+    return item.id !== id;
+  });
+
+  save();
+  renderAll();
+  toast("Produto excluído.");
+}
+
+function openMovement(id,type){
+  var product = products.find(function(item){
+    return item.id === id;
+  });
+
+  if(!product) return;
+
+  document.getElementById("movementId").value = id;
+  document.getElementById("movementType").value = type;
+  document.getElementById("movementProduct").value = product.name;
+  document.getElementById("movementQuantity").value = 1;
+  document.getElementById("movementNote").value = "";
+
+  document.getElementById("movementTitle").textContent =
+    type === "in" ? "Registrar entrada" : "Registrar saída";
+
+  document.getElementById("movementModal")
+    .classList.add("open");
+}
+
+function closeMovement(){
+  document.getElementById("movementModal")
+    .classList.remove("open");
+}
+
+function saveMovement(event){
+  event.preventDefault();
+
+  var id = document.getElementById("movementId").value;
+  var type = document.getElementById("movementType").value;
+  var quantity = Number(
+    document.getElementById("movementQuantity").value
+  );
+
+  var product = products.find(function(item){
+    return item.id === id;
+  });
+
+  if(!product) return;
+
+  if(type === "out" && quantity > product.quantity){
+    toast("A saída não pode ser maior que o estoque.");
+    return;
+  }
+
+  product.quantity += type === "in"
+    ? quantity
+    : -quantity;
+
+  movements.push({
+    date:new Date().toISOString(),
+    product:product.name,
+    type:type === "in" ? "Entrada" : "Saída",
+    quantity:quantity,
+    note:document.getElementById("movementNote").value
+  });
+
+  save();
+  closeMovement();
+  renderAll();
+
+  toast(
+    type === "in"
+      ? "Entrada registrada!"
+      : "Saída registrada!"
+  );
+}
+
+function cashierKey(event){
+  if(event.key === "Enter"){
+    event.preventDefault();
+    registerCashierProduct();
+  }
+}
+
+function registerCashierProduct(){
+  var input = document.getElementById("cashierInput");
+  var code = input.value;
+
+  input.value = "";
+
+  addToCart(code);
+  input.focus();
+}
+
+function addToCart(code,fromCamera){
+  code = String(code || "")
+    .replace(/\s/g,"")
+    .trim();
+
+  if(!code) return false;
+
+  var product = findProduct(code);
+
+  if(!product){
+    document.getElementById("cashierStatus").textContent =
+      "Código não cadastrado";
+
+    toast("Código não cadastrado.");
+
+    openProduct();
+    document.getElementById("productBarcode").value = code;
+
+    return false;
+  }
+
+  var item = cart.find(function(row){
+    return row.id === product.id;
+  });
+
+  var quantity = item ? item.quantity : 0;
+
+  if(quantity >= product.quantity){
+    document.getElementById("cashierStatus").textContent =
+      "Estoque insuficiente";
+
+    toast("Estoque insuficiente.");
+    return false;
+  }
+
+  if(item){
+    item.quantity++;
+  }else{
+    cart.push({
+      id:product.id,
+      quantity:1
+    });
+  }
+
+  playScanSound();
+
+  document.getElementById("cashierStatus").textContent =
+    "Registrado: " + product.name;
+
+  renderCart();
+
+  if(fromCamera){
+    pauseCameraForNextRead();
+  }
+
+  return true;
+}
+
+function renderCart(){
+  var table = document.getElementById("cartTable");
+  var empty = document.getElementById("cartEmpty");
+
+  empty.style.display = cart.length ? "none" : "block";
+
+  table.innerHTML = cart.map(function(item){
+    var product = products.find(function(row){
+      return row.id === item.id;
+    });
+
+    if(!product) return "";
+
+    var subtotal =
+      Number(product.price) * Number(item.quantity);
+
+    return `
+      <tr>
+        <td>
+          <div class="product-name">${esc(product.name)}</div>
+          <div class="small">
+            Código: ${esc(productCode(product))}
+          </div>
+        </td>
+
+        <td>${money(product.price)}</td>
+
+        <td>
+          <div class="qty">
+            <button onclick="changeCart('${product.id}',-1)">−</button>
+            <strong>${item.quantity}</strong>
+            <button onclick="changeCart('${product.id}',1)">＋</button>
+          </div>
+
+          <div class="small">
+            Disponível: ${product.quantity - item.quantity}
+          </div>
+        </td>
+
+        <td><strong>${money(subtotal)}</strong></td>
+
+        <td>
+          <button class="icon-btn" onclick="removeCart('${product.id}')">
+            🗑
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+
+  var itemCount = cart.reduce(function(sum,item){
+    return sum + item.quantity;
+  },0);
+
+  var subtotal = cart.reduce(function(sum,item){
+    var product = products.find(function(row){
+      return row.id === item.id;
+    });
+
+    return sum + (
+      product
+        ? Number(product.price) * Number(item.quantity)
+        : 0
+    );
+  },0);
+
+  var discount = Number(
+    document.getElementById("discount").value || 0
+  );
+
+  if(discount > subtotal){
+    discount = subtotal;
+    document.getElementById("discount").value =
+      subtotal.toFixed(2);
+  }
+
+  var total = Math.max(0,subtotal - discount);
+
+  document.getElementById("cartItems").textContent =
+    itemCount;
+
+  document.getElementById("cartSubtotal").textContent =
+    money(subtotal);
+
+  document.getElementById("cartTotal").textContent =
+    money(total);
+
+  document.getElementById("scanCount").textContent =
+    itemCount +
+    (itemCount === 1
+      ? " item registrado nesta venda"
+      : " itens registrados nesta venda");
+}
+
+function changeCart(id,difference){
+  var item = cart.find(function(row){
+    return row.id === id;
+  });
+
+  var product = products.find(function(row){
+    return row.id === id;
+  });
+
+  if(!item || !product) return;
+
+  item.quantity += difference;
+
+  if(item.quantity <= 0){
+    removeCart(id);
+    return;
+  }
+
+  if(item.quantity > product.quantity){
+    item.quantity = product.quantity;
+    toast("Quantidade maior que o estoque.");
+  }
+
+  renderCart();
+}
+
+function removeCart(id){
+  cart = cart.filter(function(item){
+    return item.id !== id;
+  });
+
+  renderCart();
+}
+
+function clearCart(){
+  cart = [];
+
+  document.getElementById("discount").value = 0;
+  document.getElementById("customer").value = "";
+  document.getElementById("cashierStatus").textContent =
+    "Aguardando leitura...";
+
+  renderCart();
+
+  setTimeout(function(){
+    document.getElementById("cashierInput").focus();
+  },100);
+}
+
+function finishSale(){
+  if(!cart.length){
+    toast("Adicione produtos antes de finalizar.");
+    return;
+  }
+
+  for(var i=0;i<cart.length;i++){
+    var product = products.find(function(row){
+      return row.id === cart[i].id;
+    });
+
+    if(!product || cart[i].quantity > product.quantity){
+      toast("Estoque insuficiente.");
+      return;
     }
-    function renderSales() {
-      const query = (document.getElementById('salesSearch') ? document.getElementById('salesSearch').value : '').toLowerCase().trim(), date = document.getElementById('salesDate') ? document.getElementById('salesDate').value : '', payment = document.getElementById('salesPayment') ? document.getElementById('salesPayment').value : '';
-      const list = [...sales].filter(s => { const text = `${s.number} ${s.customer || ''} ${s.items.map(i => i.name).join(' ')}`.toLowerCase(); const saleDate = new Date(s.date).toISOString().slice(0, 10); return (!query || text.includes(query)) && (!date || saleDate === date) && (!payment || s.payment === payment); });
-      const tbody = document.getElementById('salesTable'); if (!tbody) return; document.getElementById('salesEmpty').style.display = list.length ? 'none' : 'block';
-      tbody.innerHTML = list.map(s => { const itemCount = s.items.reduce((sum, i) => sum + i.quantity, 0), productsText = s.items.map(i => `${i.quantity}x ${i.name}`).join(', '); return `<tr><td><span class="sale-number">${escapeHtml(s.number)}</span></td><td>${new Date(s.date).toLocaleString('pt-BR')}</td><td><span class="sale-products" title="${escapeHtml(productsText)}">${escapeHtml(productsText)}</span><br><span class="sku">${itemCount} ${itemCount === 1 ? 'item' : 'itens'}</span></td><td>${escapeHtml(s.payment)}</td><td>${escapeHtml(s.customer || 'Consumidor')}</td><td><span class="sale-total">${money(s.total)}</span></td><td><button class="icon-btn" title="Ver comprovante" onclick="viewSale('${s.number}')">🧾</button></td></tr>`; }).join('');
-      const revenue = list.reduce((sum, s) => sum + Number(s.total || 0), 0), itemTotal = list.reduce((sum, s) => sum + s.items.reduce((n, i) => n + i.quantity, 0), 0); document.getElementById('salesCount').textContent = list.length; document.getElementById('soldItems').textContent = itemTotal; document.getElementById('salesRevenue').textContent = money(revenue); document.getElementById('averageTicket').textContent = money(list.length ? revenue / list.length : 0);
+  }
+
+  var payment =
+    document.getElementById("payment").value;
+
+  var customer =
+    document.getElementById("customer").value.trim();
+
+  var subtotal = cart.reduce(function(sum,item){
+    var product = products.find(function(row){
+      return row.id === item.id;
+    });
+
+    return sum + product.price * item.quantity;
+  },0);
+
+  var discount = Number(
+    document.getElementById("discount").value || 0
+  );
+
+  discount = Math.min(Math.max(discount,0),subtotal);
+
+  var sale = {
+    number:"V" + Date.now(),
+    date:new Date().toISOString(),
+    payment:payment,
+    customer:customer,
+    subtotal:subtotal,
+    discount:discount,
+    total:subtotal - discount,
+    items:cart.map(function(item){
+      var product = products.find(function(row){
+        return row.id === item.id;
+      });
+
+      return {
+        name:product.name,
+        code:productCode(product),
+        price:product.price,
+        quantity:item.quantity,
+        subtotal:product.price * item.quantity
+      };
+    })
+  };
+
+  cart.forEach(function(item){
+    var product = products.find(function(row){
+      return row.id === item.id;
+    });
+
+    product.quantity -= item.quantity;
+
+    movements.push({
+      date:new Date().toISOString(),
+      product:product.name,
+      type:"Saída",
+      quantity:item.quantity,
+      note:"Venda no caixa - " + payment
+    });
+  });
+
+  sales.push(sale);
+
+  save();
+  clearCart();
+  renderAll();
+  showReceipt(sale);
+
+  toast("Venda finalizada e estoque atualizado!");
+}
+
+function showReceipt(sale){
+  var paper = document.getElementById("receiptPaper");
+
+  paper.innerHTML = `
+    <div class="receipt-head">
+      <strong>ESTOQUE FÁCIL</strong>
+      <span>COMPROVANTE DE VENDA</span>
+      <span>Não é documento fiscal</span>
+    </div>
+
+    <div class="receipt-meta">
+      <span>Venda: ${esc(sale.number)}</span>
+      <span>${new Date(sale.date).toLocaleString("pt-BR")}</span>
+    </div>
+
+    ${
+      sale.customer
+        ? "<div>Cliente: " + esc(sale.customer) + "</div>"
+        : ""
     }
-    function viewSale(number) { const sale = sales.find(s => s.number === number); if (sale) showReceipt({ ...sale, date: new Date(sale.date) }); }
-    function exportSales() { const csvEscape = value => `"${String(value == null ? '' : value).replace(/"/g, '""')}"`; const rows = [['Venda', 'Data', 'Cliente', 'Pagamento', 'Produtos', 'Subtotal', 'Desconto', 'Total'], ...sales.map(s => [s.number, new Date(s.date).toLocaleString('pt-BR'), s.customer || 'Consumidor', s.payment, s.items.map(i => `${i.quantity}x ${i.name}`).join(' | '), s.subtotal.toFixed(2), s.discount.toFixed(2), s.total.toFixed(2)])]; const csv = '\uFEFF' + rows.map(row => row.map(csvEscape).join(';')).join('\n'); const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' }), a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'registro-de-vendas.csv'; a.click(); URL.revokeObjectURL(a.href); toast('Registro de vendas exportado!'); }
-    function openProductModal(product) {
-      document.getElementById('productForm').reset(); document.getElementById('productId').value = product && product.id ? product.id : ''; document.getElementById('modalTitle').textContent = product ? 'Editar produto' : 'Novo produto';
-      if (product) { ['name','sku','barcode','category','quantity','minimum','price'].forEach(k => document.getElementById(k).value = product[k] == null ? '' : product[k]); if (!product.barcode) document.getElementById('barcode').value = product.sku || ''; }
-      document.getElementById('productModal').classList.add('open'); setTimeout(() => document.getElementById('name').focus(), 50);
+
+    <br>
+
+    ${sale.items.map(function(item){
+      return `
+        <div class="receipt-item">
+          <span>${esc(item.name)}</span>
+          <strong>${money(item.subtotal)}</strong>
+          <small>
+            \({item.quantity} x \){money(item.price)}
+            - ${esc(item.code)}
+          </small>
+        </div>
+      `;
+    }).join("")}
+
+    <div class="receipt-totals">
+      <div class="receipt-line">
+        <span>Subtotal</span>
+        <span>${money(sale.subtotal)}</span>
+      </div>
+
+      <div class="receipt-line">
+        <span>Desconto</span>
+        <span>- ${money(sale.discount)}</span>
+      </div>
+
+      <div class="receipt-line receipt-total">
+        <span>TOTAL</span>
+        <span>${money(sale.total)}</span>
+      </div>
+
+      <div class="receipt-line">
+        <span>Pagamento</span>
+        <span>${esc(sale.payment)}</span>
+      </div>
+    </div>
+
+    <div class="receipt-thanks">
+      Obrigado pela preferência!
+    </div>
+  `;
+
+  document.getElementById("receiptModal")
+    .classList.add("open");
+}
+
+function closeReceipt(){
+  document.getElementById("receiptModal")
+    .classList.remove("open");
+}
+
+function printReceipt(){
+  var content =
+    document.getElementById("receiptPaper").outerHTML;
+
+  var win = window.open(
+    "",
+    "_blank",
+    "width=450,height=700"
+  );
+
+  if(!win){
+    toast("Permita janelas pop-up para imprimir.");
+    return;
+  }
+
+  win.document.write(`
+    <html>
+    <head>
+      <title>Comprovante</title>
+      <style>
+        body{
+          font-family:Arial;
+          padding:20px;
+        }
+
+        .receipt-paper{
+          width:380px;
+          margin:auto;
+          padding:20px;
+          border:1px dashed #999;
+          font-family:"Courier New";
+          font-size:12px;
+        }
+
+        .receipt-head{
+          text-align:center;
+          border-bottom:1px dashed #999;
+          padding-bottom:12px;
+          margin-bottom:12px;
+        }
+
+        .receipt-head strong,
+        .receipt-head span{
+          display:block;
+          line-height:1.5;
+        }
+
+        .receipt-meta,
+        .receipt-line{
+          display:flex;
+          justify-content:space-between;
+          margin:6px 0;
+        }
+
+        .receipt-item{
+          display:grid;
+          grid-template-columns:1fr auto;
+          gap:4px;
+          padding:7px 0;
+          border-bottom:1px dotted #aaa;
+        }
+
+        .receipt-item small{
+          grid-column:1;
+        }
+
+        .receipt-item strong{
+          grid-column:2;
+          grid-row:1/span 2;
+        }
+
+        .receipt-totals{
+          border-top:1px dashed #999;
+          margin-top:12px;
+          padding-top:8px;
+        }
+
+        .receipt-total{
+          font-size:16px;
+          font-weight:bold;
+        }
+
+        .receipt-thanks{
+          text-align:center;
+          border-top:1px dashed #999;
+          margin-top:14px;
+          padding-top:12px;
+        }
+      </style>
+    </head>
+    <body>${content}</body>
+    </html>
+  `);
+
+  win.document.close();
+  win.focus();
+
+  setTimeout(function(){
+    win.print();
+  },300);
+}
+
+function renderSales(){
+  var query =
+    document.getElementById("salesSearch").value
+      .toLowerCase()
+      .trim();
+
+  var date =
+    document.getElementById("salesDate").value;
+
+  var payment =
+    document.getElementById("salesPayment").value;
+
+  var list = sales.filter(function(sale){
+    var text =
+      sale.number + " " +
+      (sale.customer || "") + " " +
+      sale.items.map(function(item){
+        return item.name;
+      }).join(" ");
+
+    var saleDate =
+      new Date(sale.date).toISOString().slice(0,10);
+
+    return (
+      (!query || text.toLowerCase().indexOf(query) >= 0) &&
+      (!date || date === saleDate) &&
+      (!payment || payment === sale.payment)
+    );
+  });
+
+  var table = document.getElementById("salesTable");
+  var empty = document.getElementById("salesEmpty");
+
+  empty.style.display = list.length ? "none" : "block";
+
+  table.innerHTML = list.map(function(sale){
+    var count = sale.items.reduce(function(sum,item){
+      return sum + item.quantity;
+    },0);
+
+    var productsText = sale.items.map(function(item){
+      return item.quantity + "x " + item.name;
+    }).join(", ");
+
+    return `
+      <tr>
+        <td><strong>${esc(sale.number)}</strong></td>
+        <td>${new Date(sale.date).toLocaleString("pt-BR")}</td>
+        <td>
+          ${esc(productsText)}
+          <div class="small">${count} itens</div>
+        </td>
+        <td>${esc(sale.payment)}</td>
+        <td>${esc(sale.customer || "Consumidor")}</td>
+        <td><strong>${money(sale.total)}</strong></td>
+        <td>
+          <button class="icon-btn" onclick="openSaleReceipt('${sale.number}')">
+            🧾
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+
+  var revenue = list.reduce(function(sum,sale){
+    return sum + Number(sale.total || 0);
+  },0);
+
+  var items = list.reduce(function(sum,sale){
+    return sum + sale.items.reduce(function(total,item){
+      return total + item.quantity;
+    },0);
+  },0);
+
+  document.getElementById("salesCount").textContent =
+    list.length;
+
+  document.getElementById("soldItems").textContent =
+    items;
+
+  document.getElementById("salesRevenue").textContent =
+    money(revenue);
+
+  document.getElementById("averageTicket").textContent =
+    money(list.length ? revenue / list.length : 0);
+}
+
+function openSaleReceipt(number){
+  var sale = sales.find(function(item){
+    return item.number === number;
+  });
+
+  if(sale){
+    showReceipt(sale);
+  }
+}
+
+function exportSalesCsv(){
+  var rows = [[
+    "Venda",
+    "Data",
+    "Cliente",
+    "Pagamento",
+    "Produtos",
+    "Subtotal",
+    "Desconto",
+    "Total"
+  ]];
+
+  sales.forEach(function(sale){
+    rows.push([
+      sale.number,
+      new Date(sale.date).toLocaleString("pt-BR"),
+      sale.customer || "Consumidor",
+      sale.payment,
+      sale.items.map(function(item){
+        return item.quantity + "x " + item.name;
+      }).join(" | "),
+      sale.subtotal.toFixed(2),
+      sale.discount.toFixed(2),
+      sale.total.toFixed(2)
+    ]);
+  });
+
+  var csv = "\uFEFF" + rows.map(function(row){
+    return row.map(function(value){
+      return '"' + String(value).replace(/"/g,'""') + '"';
+    }).join(";");
+  }).join("\n");
+
+  var blob = new Blob([csv],{
+    type:"text/csv;charset=utf-8"
+  });
+
+  var link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "registro-de-vendas.csv";
+  link.click();
+
+  URL.revokeObjectURL(link.href);
+  toast("CSV exportado!");
+}
+
+function renderMovements(){
+  var table = document.getElementById("movementTable");
+  var empty = document.getElementById("movementEmpty");
+
+  empty.style.display =
+    movements.length ? "none" : "block";
+
+  table.innerHTML = movements.slice().reverse().map(function(item){
+    return `
+      <tr>
+        <td>${new Date(item.date).toLocaleString("pt-BR")}</td>
+        <td>${esc(item.product)}</td>
+        <td>
+          <span class="badge ${
+            item.type === "Entrada"
+              ? "badge-ok"
+              : "badge-low"
+          }">
+            ${item.type}
+          </span>
+        </td>
+        <td>${item.quantity} un.</td>
+        <td>${esc(item.note || "-")}</td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function exportBackup(){
+  var data = {
+    products:products,
+    movements:movements,
+    sales:sales
+  };
+
+  var blob = new Blob(
+    [JSON.stringify(data,null,2)],
+    {type:"application/json"}
+  );
+
+  var link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "backup-estoque.json";
+  link.click();
+
+  URL.revokeObjectURL(link.href);
+  toast("Backup exportado!");
+}
+
+function openScanner(mode){
+  scannerMode = mode;
+
+  document.getElementById("scannerTitle").textContent =
+    mode === "cashier"
+      ? "Registrar produto no caixa"
+      : "Leitura de código de barras";
+
+  document.getElementById("scannerModal")
+    .classList.add("open");
+
+  document.getElementById("cameraBox")
+    .classList.remove("done");
+
+  document.getElementById("cameraMessage").textContent =
+    "Câmera desativada";
+
+  document.getElementById("scanResult").textContent =
+    mode === "cashier"
+      ? "Leia o produto para adicionar ao caixa."
+      : "Pronto para ler um produto.";
+
+  setTimeout(function(){
+    document.getElementById("scannerInput").focus();
+  },100);
+}
+
+function closeScanner(){
+  stopCamera();
+
+  document.getElementById("scannerModal")
+    .classList.remove("open");
+}
+
+function scannerKey(event){
+  if(event.key === "Enter"){
+    event.preventDefault();
+
+    var code = event.target.value;
+    event.target.value = "";
+
+    processScan(code);
+  }
+}
+
+function processScan(code){
+  code = String(code || "")
+    .replace(/\s/g,"")
+    .trim();
+
+  if(!code) return;
+
+  if(scannerMode === "cashier"){
+    addToCart(code,scannerActive);
+    return;
+  }
+
+  var product = findProduct(code);
+  var result = document.getElementById("scanResult");
+
+  if(!product){
+    result.className = "scan-result error";
+    result.textContent =
+      "Código não cadastrado. Abrindo cadastro.";
+
+    closeScanner();
+    openProduct();
+
+    document.getElementById("productBarcode").value =
+      code;
+
+    return;
+  }
+
+  if(product.quantity <= 0){
+    result.className = "scan-result error";
+    result.textContent = "Produto sem estoque.";
+    toast("Produto sem estoque.");
+    return;
+  }
+
+  product.quantity--;
+
+  movements.push({
+    date:new Date().toISOString(),
+    product:product.name,
+    type:"Saída",
+    quantity:1,
+    note:"Baixa por leitura de código"
+  });
+
+  playScanSound();
+  save();
+  renderAll();
+
+  result.className = "scan-result ok";
+  result.textContent =
+    product.name + " - 1 unidade baixada.";
+
+  toast("Baixa registrada!");
+}
+
+function takePhoto(){
+  document.getElementById("photoInput").click();
+}
+
+async function readPhoto(event){
+  var file =
+    event.target.files &&
+    event.target.files[0];
+
+  if(!file) return;
+
+  var result =
+    document.getElementById("scanResult");
+
+  result.textContent = "Lendo a imagem...";
+
+  try{
+    if(!("BarcodeDetector" in window)){
+      result.className = "scan-result error";
+      result.textContent =
+        "O navegador não consegue ler códigos pela foto.";
+      return;
     }
-    function editProduct(id) { const p = products.find(x => x.id === id); if (p) openProductModal(p); }
-    function closeModal() { document.getElementById('productModal').classList.remove('open'); }
-    function saveProduct(e) { e.preventDefault(); const id = document.getElementById('productId').value; const p = { id: id || Date.now().toString(), name: document.getElementById('name').value.trim(), sku: document.getElementById('sku').value.trim(), barcode: document.getElementById('barcode').value.trim(), category: document.getElementById('category').value.trim(), quantity: Number(document.getElementById('quantity').value), minimum: Number(document.getElementById('minimum').value), price: Number(document.getElementById('price').value) }; if (id) products = products.map(x => x.id === id ? p : x); else products.push(p); save(); closeModal(); render(); toast(id ? 'Produto atualizado!' : 'Produto cadastrado!'); }
-    function deleteProduct(id) { const p = products.find(x => x.id === id); if (!p || !confirm(`Excluir “${p.name}”?`)) return; products = products.filter(x => x.id !== id); save(); render(); toast('Produto excluído.'); }
-    function openMovement(id, type) { const p = products.find(x => x.id === id); if (!p) return; document.getElementById('movementForm').reset(); document.getElementById('movementProductId').value = id; document.getElementById('movementType').value = type; document.getElementById('movementProductName').value = p.name; document.getElementById('movementTitle').textContent = type === 'in' ? 'Registrar entrada' : 'Registrar saída'; document.getElementById('movementModal').classList.add('open'); setTimeout(() => document.getElementById('movementQuantity').focus(), 50); }
-    function closeMovementModal() { document.getElementById('movementModal').classList.remove('open'); }
-    function saveMovement(e) { e.preventDefault(); const id = document.getElementById('movementProductId').value, type = document.getElementById('movementType').value, qty = Number(document.getElementById('movementQuantity').value), p = products.find(x => x.id === id); if (!p) return; if (type === 'out' && qty > p.quantity) { toast('A saída não pode ser maior que o estoque atual.'); return; } p.quantity += type === 'in' ? qty : -qty; movements.push({ date: new Date().toISOString(), product: p.name, type: type === 'in' ? 'Entrada' : 'Saída', quantity: qty, note: document.getElementById('movementNote').value.trim() }); save(); closeMovementModal(); render(); toast(type === 'in' ? 'Entrada registrada!' : 'Saída registrada!'); }
-    function productCode(p) { return p.barcode || p.sku || 'Sem código'; }
-    function findProductByCode(code) { const normalized = normalizeBarcode(code); return products.find(p => normalizeBarcode(productCode(p)) === normalized); }
-    function cashierScan(event) { if (event.key === 'Enter') { event.preventDefault(); addCashierByCode(); } }
-    function addCashierByCode() { const input = document.getElementById('cashierScanInput'), code = input.value; input.value = ''; addToCartByBarcode(code); input.focus(); }
-    function addToCartByBarcode(value) {
-      const code = normalizeBarcode(value); if (!code) return;
-      const p = findProductByCode(code);
-      if (!p) { const status = document.getElementById('cashierStatus'); if (status) status.textContent = 'Código não cadastrado'; toast('Código não cadastrado.'); closeScanner(); openProductModal(); document.getElementById('barcode').value = code; document.getElementById('name').focus(); return; }
-      const item = cart.find(i => i.id === p.id), inCart = item ? item.quantity : 0;
-      if (p.quantity <= inCart) { const status = document.getElementById('cashierStatus'); if (status) status.textContent = `Sem estoque: ${p.name}`; toast(`${p.name}: estoque insuficiente.`); return; }
-      if (item) item.quantity += 1; else cart.push({ id: p.id, quantity: 1 });
-      const status = document.getElementById('cashierStatus'); if (status) status.textContent = `Registrado: ${p.name}`;
-      renderCart(); toast(`${p.name} adicionado ao caixa.`);
+
+    var image = await createImageBitmap(file);
+    var detector = new BarcodeDetector();
+    var codes = await detector.detect(image);
+
+    image.close();
+
+    if(codes.length && codes[0].rawValue){
+      processScan(codes[0].rawValue);
+    }else{
+      result.className = "scan-result error";
+      result.textContent =
+        "Código não encontrado na foto.";
     }
-    function renderCart() {
-      const tbody = document.getElementById('cartTable'), empty = document.getElementById('cartEmpty'); if (!tbody) return;
-      empty.style.display = cart.length ? 'none' : 'block';
-      tbody.innerHTML = cart.map(item => { const p = products.find(x => x.id === item.id); if (!p) return ''; const subtotal = p.price * item.quantity; return `<tr><td><div class="cart-product">${escapeHtml(p.name)}</div><div class="cart-code">Código: ${escapeHtml(productCode(p))}</div></td><td>${money(p.price)}</td><td><div class="qty-control"><button onclick="changeCartQty('${p.id}', -1)">−</button><strong>${item.quantity}</strong><button onclick="changeCartQty('${p.id}', 1)">＋</button></div><span class="stock-note">Disponível: ${p.quantity - item.quantity}</span></td><td><strong>${money(subtotal)}</strong></td><td><button class="icon-btn" onclick="removeCartItem('${p.id}')">🗑</button></td></tr>`; }).join('');
-      const itemCount = cart.reduce((sum, i) => sum + i.quantity, 0), subtotal = cart.reduce((sum, i) => { const p = products.find(x => x.id === i.id); return sum + (p ? p.price * i.quantity : 0); }, 0), discountInput = document.getElementById('discount'), discount = Math.min(Math.max(Number(discountInput ? discountInput.value || 0 : 0), 0), subtotal), total = Math.max(0, subtotal - discount);
-      if (discountInput && Number(discountInput.value || 0) !== discount) discountInput.value = discount.toFixed(2);
-      document.getElementById('cartItems').textContent = itemCount; document.getElementById('cartSubtotal').textContent = money(subtotal); document.getElementById('cartTotal').textContent = money(total);
+  }catch(error){
+    result.className = "scan-result error";
+    result.textContent =
+      "Não foi possível ler a foto.";
+  }
+
+  event.target.value = "";
+}
+
+async function startCamera(){
+  var result =
+    document.getElementById("scanResult");
+
+  var message =
+    document.getElementById("cameraMessage");
+
+  var getCamera =
+    navigator.mediaDevices &&
+    navigator.mediaDevices.getUserMedia
+      ? navigator.mediaDevices.getUserMedia.bind(
+          navigator.mediaDevices
+        )
+      : null;
+
+  if(!getCamera){
+    message.textContent = "Use a opção Tirar foto.";
+    result.textContent =
+      "A câmera ao vivo precisa de HTTPS ou localhost.";
+    takePhoto();
+    return;
+  }
+
+  try{
+    scannerStream = await getCamera({
+      video:{
+        facingMode:{
+          ideal:"environment"
+        }
+      },
+      audio:false
+    });
+
+    var video = document.getElementById("video");
+
+    video.srcObject = scannerStream;
+    await video.play();
+
+    document.getElementById("cameraBox")
+      .classList.add("active");
+
+    document.getElementById("cameraBox")
+      .classList.remove("done");
+
+    document.getElementById("cameraButton")
+      .textContent = "⏹ Desativar câmera";
+
+    scannerActive = true;
+    cameraReading = false;
+
+    message.textContent =
+      "Aponte para o código";
+
+    if("BarcodeDetector" in window){
+      readCameraFrame();
+    }else{
+      result.textContent =
+        "Câmera ativa. Use um leitor ou digite o código.";
     }
-    function changeCartQty(id, delta) { const item = cart.find(i => i.id === id), p = products.find(x => x.id === id); if (!item || !p) return; const next = item.quantity + delta; if (next <= 0) return removeCartItem(id); if (next > p.quantity) return toast('Quantidade maior que o estoque disponível.'); item.quantity = next; renderCart(); }
-    function removeCartItem(id) { cart = cart.filter(i => i.id !== id); renderCart(); }
-    function clearCart() { cart = []; const discount = document.getElementById('discount'), customer = document.getElementById('customer'), status = document.getElementById('cashierStatus'); if (discount) discount.value = '0'; if (customer) customer.value = ''; if (status) status.textContent = 'Aguardando leitura...'; renderCart(); setTimeout(() => { const input = document.getElementById('cashierScanInput'); if (input) input.focus(); }, 50); }
-    function finalizeSale() {
-      if (!cart.length) return toast('Adicione produtos ao caixa antes de finalizar.');
-      for (const item of cart) { const p = products.find(x => x.id === item.id); if (!p || item.quantity > p.quantity) return toast(`Estoque insuficiente para ${(p && p.name) || 'um produto'}.`); }
-      const payment = document.getElementById('payment').value, customer = document.getElementById('customer').value.trim();
-      const subtotal = cart.reduce((sum, item) => { const p = products.find(x => x.id === item.id); return sum + (p ? p.price * item.quantity : 0); }, 0);
-      const discount = Math.min(Math.max(Number(document.getElementById('discount').value || 0), 0), subtotal), total = Math.max(0, subtotal - discount), date = new Date();
-      const sale = { number: `V${date.getFullYear()}${String(date.getTime()).slice(-6)}`, date, payment, customer, subtotal, discount, total, items: cart.map(item => { const p = products.find(x => x.id === item.id); return { name: p.name, code: productCode(p), price: p.price, quantity: item.quantity, subtotal: p.price * item.quantity }; }) };
-      cart.forEach(item => { const p = products.find(x => x.id === item.id); p.quantity -= item.quantity; movements.push({ date: date.toISOString(), product: p.name, type: 'Saída', quantity: item.quantity, note: `Venda no caixa — ${payment}${customer ? ` — ${customer}` : ''}` }); });
-      sales.push(sale); save(); clearCart(); render(); showReceipt(sale); toast('Venda finalizada e estoque atualizado!');
+  }catch(error){
+    message.textContent = "Permissão recusada";
+
+    result.className = "scan-result error";
+    result.textContent =
+      "Permita a câmera nas configurações do navegador.";
+
+    toast("Permissão da câmera recusada.");
+  }
+}
+
+async function readCameraFrame(){
+  if(
+    !scannerActive ||
+    cameraReading ||
+    !("BarcodeDetector" in window)
+  ){
+    return;
+  }
+
+  cameraReading = true;
+
+  try{
+    var detector = new BarcodeDetector();
+
+    var codes = await detector.detect(
+      document.getElementById("video")
+    );
+
+    if(
+      codes.length &&
+      codes[0].rawValue &&
+      scannerActive
+    ){
+      processScan(codes[0].rawValue);
     }
-    function showReceipt(sale) {
-      const paper = document.getElementById('receiptPaper');
-      paper.innerHTML = `<div class="receipt-head"><strong>ESTOQUE FÁCIL</strong><span>COMPROVANTE DE VENDA</span><span>Não é documento fiscal</span></div><div class="receipt-meta"><span>Venda: ${escapeHtml(sale.number)}</span><span>${sale.date.toLocaleString('pt-BR')}</span></div>${sale.customer ? `<div style="margin-bottom:12px">Cliente: ${escapeHtml(sale.customer)}</div>` : ''}<div>${sale.items.map(item => `<div class="receipt-item"><span>${escapeHtml(item.name)}</span><strong>${money(item.subtotal)}</strong><small>${item.quantity} x ${money(item.price)} · ${escapeHtml(item.code)}</small></div>`).join('')}</div><div class="receipt-totals"><div class="receipt-line"><span>Subtotal</span><span>${money(sale.subtotal)}</span></div><div class="receipt-line"><span>Desconto</span><span>- ${money(sale.discount)}</span></div><div class="receipt-line receipt-total"><span>TOTAL</span><span>${money(sale.total)}</span></div><div class="receipt-line"><span>Pagamento</span><span>${escapeHtml(sale.payment)}</span></div></div><div class="receipt-thanks">Obrigado pela preferência!</div>`;
-      document.getElementById('receiptModal').classList.add('open');
+  }catch(error){
+  }finally{
+    cameraReading = false;
+
+    if(scannerActive){
+      setTimeout(function(){
+        requestAnimationFrame(readCameraFrame);
+      },500);
     }
-    function closeReceipt() { document.getElementById('receiptModal').classList.remove('open'); }
-    function printReceipt() { const content = document.getElementById('receiptPaper').outerHTML, printWindow = window.open('', '_blank', 'width=460,height=760'); if (!printWindow) return toast('Permita janelas pop-up para imprimir o comprovante.'); printWindow.document.write(`<html><head><title>Comprovante de venda</title><style>body{margin:0;padding:15px;font-family:Arial,sans-serif;color:#202738}.receipt-paper{width:380px;margin:auto;padding:20px;border:1px dashed #aaa;font-family:'Courier New',monospace;font-size:12px}.receipt-head{text-align:center;border-bottom:1px dashed #aaa;padding-bottom:12px;margin-bottom:12px}.receipt-head strong{display:block;font-size:16px}.receipt-head span{display:block;line-height:1.5}.receipt-meta,.receipt-line{display:flex;justify-content:space-between;gap:8px}.receipt-meta{margin-bottom:12px}.receipt-item{display:grid;grid-template-columns:1fr auto;gap:4px 8px;padding:7px 0;border-bottom:1px dotted #aaa}.receipt-item small{grid-column:1;color:#666}.receipt-item strong{grid-column:2;grid-row:1 / span 2}.receipt-totals{border-top:1px dashed #aaa;margin-top:12px;padding-top:8px}.receipt-line{margin:5px 0}.receipt-total{font-size:16px;font-weight:bold}.receipt-thanks{text-align:center;border-top:1px dashed #aaa;margin-top:14px;padding-top:12px}</style></head><body>${content}</body></html>`); printWindow.document.close(); printWindow.focus(); setTimeout(() => printWindow.print(), 250); }
-    let scannerStream = null, scannerActive = false, scanBusy = false;
-    function openScanner(mode = 'stock') { scannerMode = mode; document.getElementById('scanModalTitle').textContent = mode === 'cashier' ? 'Registrar produto no caixa' : 'Leitura de código de barras'; document.getElementById('scanModal').classList.add('open'); document.getElementById('scanResult').className = 'scan-result'; document.getElementById('scanResult').textContent = mode === 'cashier' ? 'Leia o produto para adicionar ao caixa.' : 'Pronto para ler um produto.'; setTimeout(() => document.getElementById('barcodeScanInput').focus(), 100); }
-    function closeScanner() { stopCamera(); document.getElementById('scanModal').classList.remove('open'); }
-    function normalizeBarcode(value) { return String(value || '').replace(/\s/g, '').trim(); }
-    function scanFromInput(event) { if (event.key === 'Enter') { event.preventDefault(); processBarcode(event.target.value); event.target.value = ''; } }
-    function processBarcode(value) {
-      const code = normalizeBarcode(value); if (!code) return;
-      if (scannerMode === 'cashier') { addToCartByBarcode(code); return; }
-      const product = findProductByCode(code);
-      const result = document.getElementById('scanResult');
-      if (!product) { result.className = 'scan-result error'; result.textContent = `Código ${code} não cadastrado. Abrindo cadastro do produto...`; toast('Novo código detectado. Cadastre o produto.'); closeScanner(); openProductModal(); document.getElementById('barcode').value = code; document.getElementById('name').focus(); return; }
-      if (product.quantity <= 0) { result.className = 'scan-result error'; result.textContent = `${product.name}: sem estoque disponível.`; toast('Produto sem estoque.'); return; }
-      product.quantity -= 1;
-      movements.push({ date: new Date().toISOString(), product: product.name, type: 'Saída', quantity: 1, note: 'Baixa por código de barras' });
-      save(); render(); result.className = 'scan-result success'; result.textContent = `✓ ${product.name} — 1 unidade baixada. Restam ${product.quantity} un.`; toast(`Baixa registrada: ${product.name}`);
+  }
+}
+
+function pauseCameraForNextRead(){
+  var box =
+    document.getElementById("cameraBox");
+
+  var message =
+    document.getElementById("cameraMessage");
+
+  stopCamera();
+
+  box.classList.add("done");
+  message.textContent = "✓";
+
+  document.getElementById("scanResult").className =
+    "scan-result ok";
+
+  document.getElementById("scanResult").textContent =
+    "Produto registrado. Preparando próxima leitura...";
+
+  setTimeout(function(){
+    box.classList.remove("done");
+
+    if(
+      document.getElementById("scannerModal").classList.contains("open") &&
+      scannerMode === "cashier"
+    ){
+      startCamera();
     }
-    function openNativeCamera() { document.getElementById('nativeCameraInput').click(); }
-    async function readBarcodePhoto(event) {
-      const file = event.target.files && event.target.files[0]; if (!file) return;
-      const result = document.getElementById('scanResult'); result.className = 'scan-result'; result.textContent = 'Lendo o código da foto...';
-      try {
-        if (!('BarcodeDetector' in window)) { result.className = 'scan-result error'; result.textContent = 'Não foi possível ler a foto automaticamente. Use um leitor ou digite o código.'; return; }
-        const image = await createImageBitmap(file), detector = new BarcodeDetector(), codes = await detector.detect(image); image.close();
-        if (codes.length && codes[0].rawValue) processBarcode(codes[0].rawValue); else { result.className = 'scan-result error'; result.textContent = 'Código não encontrado. Tire outra foto aproximando o código.'; }
-      } catch (error) { result.className = 'scan-result error'; result.textContent = 'Não foi possível ler a foto. Tente novamente.'; }
-      event.target.value = '';
+  },900);
+}
+
+function stopCamera(){
+  scannerActive = false;
+  cameraReading = false;
+
+  if(scannerStream){
+    scannerStream.getTracks().forEach(function(track){
+      track.stop();
+    });
+  }
+
+  scannerStream = null;
+
+  var video = document.getElementById("video");
+
+  if(video){
+    video.srcObject = null;
+  }
+
+  document.getElementById("cameraBox")
+    .classList.remove("active");
+
+  document.getElementById("cameraButton")
+    .textContent = "📷 Ativar câmera";
+}
+
+document.getElementById("cameraButton").onclick =
+  function(){
+    if(scannerActive){
+      stopCamera();
+    }else{
+      startCamera();
     }
-    async function startCamera() {
-      const cameraMessage = document.getElementById('cameraMessage'), result = document.getElementById('scanResult');
-      cameraMessage.textContent = 'Solicitando permissão da câmera...'; result.className = 'scan-result'; result.textContent = 'Quando aparecer a solicitação, toque em Permitir.';
-      const getCamera = navigator.mediaDevices && navigator.mediaDevices.getUserMedia ? navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices) : null;
-      if (!getCamera) { cameraMessage.textContent = 'Abrindo a câmera do celular...'; result.className = 'scan-result'; result.textContent = 'Escolha a câmera para tirar uma foto do código.'; openNativeCamera(); return; }
-      try {
-        // Esta chamada acontece diretamente após o toque no botão e abre a solicitação nativa de permissão.
-        scannerStream = await getCamera({ video: { facingMode: { ideal: 'environment' } }, audio: false });
-        const video = document.getElementById('scannerVideo'); video.srcObject = scannerStream; await video.play(); document.querySelector('.camera-box').classList.add('active'); document.getElementById('cameraButton').textContent = '⏹ Desativar câmera'; scannerActive = true;
-        if ('BarcodeDetector' in window) { cameraMessage.textContent = 'Aponte para o código de barras'; result.textContent = 'Câmera ativa. Aponte para um código.'; scanCameraFrame(); } else { cameraMessage.textContent = 'Câmera ativa'; result.textContent = 'Câmera ativa. Use um leitor ou digite o código no campo abaixo.'; }
-      } catch (error) { cameraMessage.textContent = 'Permissão da câmera recusada'; result.className = 'scan-result error'; result.textContent = 'Permita o acesso à câmera nas configurações do navegador e tente novamente.'; toast('Permissão da câmera recusada.'); }
+  };
+
+document.querySelectorAll(".modal-bg").forEach(function(modal){
+  modal.addEventListener("click",function(event){
+    if(event.target === modal){
+      modal.classList.remove("open");
+
+      if(modal.id === "scannerModal"){
+        stopCamera();
+      }
     }
-    async function scanCameraFrame() {
-      if (!scannerActive || scanBusy || !('BarcodeDetector' in window)) return scannerActive && requestAnimationFrame(scanCameraFrame);
-      scanBusy = true;
-      try { const detector = new BarcodeDetector(); const codes = await detector.detect(document.getElementById('scannerVideo')); if (codes.length && codes[0].rawValue) { processBarcode(codes[0].rawValue); await new Promise(resolve => setTimeout(resolve, 900)); } } catch (error) {} finally { scanBusy = false; if (scannerActive) requestAnimationFrame(scanCameraFrame); }
-    }
-    function stopCamera() { scannerActive = false; scanBusy = false; if (scannerStream) scannerStream.getTracks().forEach(track => track.stop()); scannerStream = null; const video = document.getElementById('scannerVideo'); if (video) video.srcObject = null; document.querySelector('.camera-box').classList.remove('active'); document.getElementById('cameraButton').textContent = '📷 Ativar câmera'; }
-    function toggleCamera() { if (scannerActive) stopCamera(); else startCamera(); }
-    document.getElementById('cameraButton').onclick = toggleCamera;
-    function showView(view, button) { document.querySelectorAll('.nav button').forEach(b => { b.classList.remove('active', 'cashier-active', 'sales-view-active'); }); button.classList.add('active'); if (view === 'caixa') button.classList.add('cashier-active'); if (view === 'vendas') button.classList.add('sales-view-active'); document.body.classList.toggle('pos-mode', view === 'caixa'); document.querySelector('.cards').style.display = view === 'caixa' || view === 'vendas' ? 'none' : 'grid'; document.getElementById('pageTitle').textContent = view === 'caixa' ? 'Caixa registrador' : view === 'vendas' ? 'Registro de vendas' : view === 'movimentos' ? 'Movimentos do estoque' : 'Controle de estoque'; document.getElementById('pageSubtitle').textContent = view === 'caixa' ? 'Registre as compras e gere o comprovante da venda.' : view === 'vendas' ? 'Consulte os comprovantes e analise suas vendas.' : view === 'movimentos' ? 'Acompanhe todas as entradas e saídas.' : 'Acompanhe seus produtos de forma simples.'; document.getElementById('stockView').style.display = view === 'estoque' ? 'block' : 'none'; document.getElementById('cashierView').style.display = view === 'caixa' ? 'grid' : 'none'; document.getElementById('salesView').style.display = view === 'vendas' ? 'block' : 'none'; document.getElementById('movementView').style.display = view === 'movimentos' ? 'block' : 'none'; if (view === 'movimentos') renderMovements(); if (view === 'vendas') renderSales(); if (view === 'caixa') { renderCart(); setTimeout(() => document.getElementById('cashierScanInput').focus(), 50); } }
-    function exportData() { const blob = new Blob([JSON.stringify({ products, movements }, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'backup-estoque.json'; a.click(); URL.revokeObjectURL(a.href); toast('Backup exportado!'); }
-    function toast(message) { const el = document.getElementById('toast'); el.textContent = message; el.classList.add('show'); clearTimeout(window.toastTimer); window.toastTimer = setTimeout(() => el.classList.remove('show'), 2500); }
-    function escapeHtml(value) { return String(value == null ? '' : value).replace(/[&<>'"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[c])); }
-    document.querySelectorAll('.modal-backdrop').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.id === 'scanModal' ? closeScanner() : m.classList.remove('open'); }));
-    render();
-  </script>
+  });
+});
+
+renderAll();
+</script>
+
 </body>
 </html>
